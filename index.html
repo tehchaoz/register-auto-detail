@@ -1,0 +1,2796 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Register Auto Detail</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      :root {
+        --bg: #0f0f1a;
+        --surface: #1a1a2e;
+        --card: #16213e;
+        --card-hover: #1c2a4a;
+        --accent: #e94560;
+        --accent-hover: #ff6b7a;
+        --accent-dim: rgba(233, 69, 96, 0.15);
+        --gold: #d4a853;
+        --gold-dim: rgba(212, 168, 83, 0.12);
+        --text: #ffffff;
+        --text-muted: #8a8aa0;
+        --text-dim: #5a5a72;
+        --border: #2a2a4a;
+        --success: #2ecc71;
+        --warning: #f39c12;
+        --danger: #e74c3c;
+        --radius: 12px;
+        --radius-sm: 8px;
+        --radius-lg: 16px;
+        --shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+        --font: "Inter", -apple-system, sans-serif;
+        --mono: "JetBrains Mono", monospace;
+        --nav-h: 64px;
+        --bottom-nav: 72px;
+      }
+      html {
+        font-size: 16px;
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: var(--font);
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+        padding-bottom: calc(var(--bottom-nav) + 16px);
+      }
+      @media (min-width: 768px) {
+        body {
+          padding-bottom: 0;
+        }
+      }
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--bg);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 3px;
+      }
+      ::selection {
+        background: var(--accent);
+        color: #fff;
+      }
+
+      /* ── Layout ── */
+      .container {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 0 16px;
+      }
+      .section {
+        display: none;
+        animation: fadeIn 0.25s ease;
+      }
+      .section.active {
+        display: block;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* ── Header ── */
+      .header {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 12px 0;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+      .header .container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 800;
+        font-size: 1.1rem;
+        color: var(--text);
+        text-decoration: none;
+      }
+      .logo-icon {
+        width: 32px;
+        height: 32px;
+        background: var(--accent);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: #fff;
+      }
+      .logo span {
+        color: var(--gold);
+      }
+      .badge {
+        background: var(--accent-dim);
+        color: var(--accent);
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 2px 10px;
+        border-radius: 20px;
+        white-space: nowrap;
+      }
+
+      /* ── Desktop Nav ── */
+      .desktop-nav {
+        display: none;
+        gap: 4px;
+      }
+      @media (min-width: 768px) {
+        .desktop-nav {
+          display: flex;
+        }
+      }
+      .nav-btn {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-family: var(--font);
+        font-size: 0.85rem;
+        font-weight: 500;
+        padding: 8px 18px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .nav-btn:hover {
+        color: var(--text);
+        background: var(--accent-dim);
+      }
+      .nav-btn.active {
+        color: var(--accent);
+        background: var(--accent-dim);
+      }
+
+      /* ── Bottom Nav (mobile) ── */
+      .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+        display: flex;
+        z-index: 200;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+      @media (min-width: 768px) {
+        .bottom-nav {
+          display: none;
+        }
+      }
+      .bottom-nav .nav-btn {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        padding: 8px 0 6px;
+        font-size: 0.65rem;
+        border-radius: 0;
+      }
+      .bottom-nav .nav-btn .nav-icon {
+        font-size: 1.3rem;
+        line-height: 1;
+      }
+
+      /* ── Cards ── */
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        margin-bottom: 16px;
+      }
+      .card-title {
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-muted);
+        margin-bottom: 16px;
+      }
+
+      /* ── Stats Bar ── */
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      .stat {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 14px 16px;
+        text-align: center;
+      }
+      .stat-val {
+        font-size: 1.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--accent), var(--gold));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .stat-lbl {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-top: 2px;
+      }
+
+      /* ── Forms ── */
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      @media (max-width: 480px) {
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .form-group.full {
+        grid-column: 1/-1;
+      }
+      .form-group.half {
+        grid-column: span 1;
+      }
+      @media (max-width: 480px) {
+        .form-group.half {
+          grid-column: 1/-1;
+        }
+      }
+      .form-group label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        font-family: var(--font);
+        font-size: 1rem;
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-sm);
+        color: var(--text);
+        padding: 12px 14px;
+        outline: none;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+        width: 100%;
+      }
+      .form-group input:focus,
+      .form-group select:focus,
+      .form-group textarea:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-dim);
+      }
+      .form-group input::placeholder,
+      .form-group textarea::placeholder {
+        color: var(--text-dim);
+      }
+      .form-group select {
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='%238a8aa0'%3E%3Cpath d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 14px center;
+        padding-right: 36px;
+      }
+      .form-group textarea {
+        resize: vertical;
+        min-height: 72px;
+      }
+      .price-display {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--gold);
+        padding: 4px 0;
+      }
+      .price-display .currency {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+      }
+      .price-mask {
+        display: inline-block;
+        transition:
+          filter 0.3s,
+          opacity 0.3s;
+      }
+      body.prices-hidden .price-mask {
+        filter: blur(6px);
+        opacity: 0.5;
+        user-select: none;
+        cursor: pointer;
+      }
+      body.prices-hidden .price-mask {
+        filter: blur(6px);
+        opacity: 0.5;
+        user-select: none;
+        cursor: pointer;
+      }
+
+      /* ── Buttons ── */
+      .btn {
+        font-family: var(--font);
+        font-size: 1rem;
+        font-weight: 600;
+        border: none;
+        border-radius: var(--radius-sm);
+        padding: 14px 24px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 48px;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .btn:active {
+        transform: scale(0.97);
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, var(--accent), #d6304a);
+        color: #fff;
+      }
+      .btn-primary:hover {
+        background: var(--accent-hover);
+        box-shadow: 0 4px 20px rgba(233, 69, 96, 0.35);
+      }
+      .btn-secondary {
+        background: var(--surface);
+        color: var(--text);
+        border: 1.5px solid var(--border);
+      }
+      .btn-secondary:hover {
+        background: var(--card-hover);
+        border-color: var(--text-muted);
+      }
+      .btn-gold {
+        background: linear-gradient(135deg, var(--gold), #b8943f);
+        color: #fff;
+      }
+      .btn-gold:hover {
+        box-shadow: 0 4px 20px rgba(212, 168, 83, 0.35);
+      }
+      .btn-sm {
+        font-size: 0.8rem;
+        padding: 8px 14px;
+        min-height: 36px;
+      }
+      .btn-icon {
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        border-radius: 50%;
+        min-height: auto;
+      }
+      .btn-group {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .btn-danger {
+        background: var(--danger);
+        color: #fff;
+      }
+      .btn-danger:hover {
+        background: #c0392b;
+      }
+
+      /* ── Submit bar ── */
+      .submit-bar {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin-top: 8px;
+        flex-wrap: wrap;
+      }
+      .submit-bar .btn {
+        flex: 1;
+        min-width: 140px;
+      }
+
+      /* ── Table ── */
+      .table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 -4px;
+        padding: 0 4px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.82rem;
+      }
+      thead {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+      }
+      th {
+        background: var(--surface);
+        color: var(--text-muted);
+        font-weight: 600;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding: 10px 12px;
+        text-align: left;
+        white-space: nowrap;
+        border-bottom: 2px solid var(--border);
+      }
+      td {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border);
+        white-space: nowrap;
+        color: var(--text);
+      }
+      td .price-cell {
+        color: var(--gold);
+        font-weight: 600;
+        font-family: var(--mono);
+      }
+      tr:hover td {
+        background: var(--card-hover);
+      }
+      .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--text-muted);
+      }
+      .empty-state .empty-icon {
+        font-size: 2.5rem;
+        margin-bottom: 8px;
+        opacity: 0.5;
+      }
+      .empty-state p {
+        font-size: 0.9rem;
+      }
+
+      /* ── Week Group ── */
+      .week-group {
+        margin-bottom: 24px;
+      }
+      .week-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 0 8px;
+        margin-bottom: 8px;
+        border-bottom: 1px solid var(--border);
+        cursor: pointer;
+        user-select: none;
+      }
+      .week-header:hover .week-toggle {
+        opacity: 1;
+      }
+      .week-label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .week-label .week-range {
+        color: var(--text-muted);
+        font-weight: 500;
+      }
+      .week-total {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--gold);
+        font-family: var(--mono);
+      }
+      .week-toggle {
+        opacity: 0.5;
+        transition: opacity 0.2s;
+        color: var(--text-muted);
+        font-size: 0.7rem;
+      }
+      .dealership-group {
+        margin-bottom: 8px;
+      }
+      .dealership-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 0;
+        margin-bottom: 4px;
+      }
+      .dealership-name {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+      .dealership-count {
+        font-size: 0.7rem;
+        color: var(--text-dim);
+      }
+
+      /* ── Filters ── */
+      .filter-bar {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: end;
+        margin-bottom: 16px;
+      }
+      .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+      .filter-group label {
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        font-weight: 600;
+        letter-spacing: 0.04em;
+      }
+      .filter-group input,
+      .filter-group select {
+        font-family: var(--font);
+        font-size: 0.85rem;
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-sm);
+        color: var(--text);
+        padding: 8px 12px;
+        outline: none;
+        min-width: 120px;
+      }
+      .filter-group input:focus {
+        border-color: var(--accent);
+      }
+
+      /* ── Settings ── */
+      .settings-panel {
+        margin-top: 16px;
+      }
+      .settings-panel .form-group input {
+        font-size: 0.85rem;
+        padding: 10px 12px;
+      }
+      .settings-panel .form-group .hint {
+        font-size: 0.72rem;
+        color: var(--text-dim);
+        margin-top: 2px;
+      }
+
+      /* ── Toast ── */
+      .toast-container {
+        position: fixed;
+        top: 80px;
+        right: 16px;
+        z-index: 999;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        pointer-events: none;
+      }
+      .toast {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 12px 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        box-shadow: var(--shadow);
+        animation: slideIn 0.25s ease;
+        pointer-events: auto;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .toast.success {
+        border-left: 3px solid var(--success);
+      }
+      .toast.error {
+        border-left: 3px solid var(--danger);
+      }
+      .toast.info {
+        border-left: 3px solid var(--accent);
+      }
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateX(40px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      /* ── Service Badge ── */
+      .svc-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--accent-dim);
+        color: var(--accent);
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 3px 10px;
+        border-radius: 20px;
+        white-space: nowrap;
+      }
+      .svc-badge .svc-price {
+        color: var(--gold);
+        font-weight: 700;
+      }
+
+      /* ── Mobile table tweaks ── */
+      @media (max-width: 600px) {
+        table {
+          font-size: 0.75rem;
+        }
+        th,
+        td {
+          padding: 8px;
+        }
+        .card {
+          padding: 14px;
+        }
+        .stats {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .stat {
+          padding: 10px 12px;
+        }
+        .stat-val {
+          font-size: 1.2rem;
+        }
+      }
+      @media (max-width: 480px) {
+        th:not(.always-show),
+        td:not(.always-show) {
+          display: none;
+        }
+        th.always-show,
+        td.always-show {
+          display: table-cell;
+        }
+      }
+
+      /* ── Print ── */
+      @media print {
+        .header,
+        .bottom-nav,
+        .desktop-nav,
+        .filter-bar,
+        .btn-group,
+        .submit-bar,
+        .settings-panel {
+          display: none !important;
+        }
+        body {
+          background: #fff;
+          color: #000;
+          padding: 0;
+        }
+        .card {
+          border: 1px solid #ddd;
+          background: #fff;
+        }
+        table {
+          font-size: 10pt;
+        }
+        th {
+          background: #f5f5f5;
+          color: #333;
+        }
+        td {
+          color: #333;
+        }
+        .price-cell {
+          color: #b8860b;
+        }
+      }
+
+      /* ── Misc ── */
+      .mt-8 {
+        margin-top: 8px;
+      }
+      .mt-16 {
+        margin-top: 16px;
+      }
+      .mb-16 {
+        margin-bottom: 16px;
+      }
+      .gap-8 {
+        gap: 8px;
+      }
+      .flex {
+        display: flex;
+      }
+      .flex-between {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .text-muted {
+        color: var(--text-muted);
+      }
+      .text-center {
+        text-align: center;
+      }
+      .truncate {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 120px;
+      }
+
+      /* Synced indicator */
+      .synced-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 4px;
+      }
+      .synced-dot.yes {
+        background: var(--success);
+      }
+      .synced-dot.no {
+        background: var(--text-dim);
+      }
+
+      /* ── Dealer Tags ── */
+      .dealer-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: var(--accent-dim);
+        color: var(--accent);
+        font-size: 0.75rem;
+        font-weight: 500;
+        padding: 3px 10px;
+        border-radius: 20px;
+      }
+      .dealer-tag .del {
+        cursor: pointer;
+        opacity: 0.5;
+        font-size: 0.85rem;
+        line-height: 1;
+        margin-left: 2px;
+      }
+      .dealer-tag .del:hover {
+        opacity: 1;
+      }
+
+      /* ── Manage Input Row ── */
+      .dealer-add-row {
+        display: flex;
+        gap: 6px;
+        margin-top: 6px;
+      }
+      .dealer-add-row input {
+        flex: 1;
+        font-family: var(--font);
+        font-size: 0.85rem;
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-sm);
+        color: var(--text);
+        padding: 8px 12px;
+        outline: none;
+      }
+      .dealer-add-row input:focus {
+        border-color: var(--accent);
+      }
+      .dealer-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-top: 6px;
+      }
+      .fav-star {
+        cursor: pointer;
+        color: var(--gold);
+        font-size: 1.1em;
+        user-select: none;
+      }
+      .fav-star:hover {
+        opacity: 0.7;
+      }
+
+      /* ── VIN Spinner ── */
+      .vin-wrap {
+        position: relative;
+      }
+      .vin-spinner {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 16px;
+        height: 16px;
+        border: 2px solid var(--border);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+        display: none;
+      }
+      @keyframes spin {
+        to {
+          transform: translateY(-50%) rotate(360deg);
+        }
+      }
+      .vin-wrap input {
+        padding-right: 32px;
+      }
+
+      /* ── Field hint ── */
+      .field-hint {
+        font-size: 0.68rem;
+        color: var(--text-dim);
+        margin-top: 2px;
+      }
+      .req {
+        color: var(--accent);
+      }
+
+      /* ── Settings Dropdown ── */
+      .nav-dropdown {
+        position: relative;
+      }
+      .nav-dropdown:hover .nav-dropdown-menu {
+        display: block;
+      }
+      .nav-dropdown-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        min-width: 160px;
+        z-index: 300;
+        box-shadow: var(--shadow);
+        padding: 4px;
+      }
+      .nav-dropdown-menu button {
+        display: block;
+        width: 100%;
+        text-align: left;
+        background: none;
+        border: none;
+        color: var(--text);
+        font-family: var(--font);
+        font-size: 0.85rem;
+        padding: 8px 14px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .nav-dropdown-menu button:hover {
+        background: var(--accent-dim);
+        color: var(--accent);
+      }
+
+      /* ── Modal Overlay ── */
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 500;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(2px);
+      }
+      .modal-overlay.open {
+        display: flex;
+      }
+      .modal {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        max-width: 400px;
+        width: 90%;
+        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+        animation: modalIn 0.2s ease;
+      }
+      @keyframes modalIn {
+        from {
+          transform: scale(0.95);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+      .modal-title {
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 16px;
+      }
+      .modal .form-group {
+        margin-bottom: 12px;
+      }
+      .modal .btn-group {
+        margin-top: 16px;
+      }
+
+      /* ── Filter Panel ── */
+      .filter-panel {
+        display: none;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 16px;
+        margin-bottom: 16px;
+        animation: fadeIn 0.2s ease;
+      }
+      .filter-panel.open {
+        display: block;
+      }
+      .filter-section {
+        margin-bottom: 14px;
+      }
+      .filter-section:last-child {
+        margin-bottom: 0;
+      }
+      .filter-section-label {
+        font-size: 0.72rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+      }
+      .preset-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .preset-btn {
+        font-family: var(--font);
+        font-size: 0.78rem;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        color: var(--text);
+        padding: 6px 14px;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .preset-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .preset-btn.active {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+      .filter-checkbox-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4px 12px;
+        max-height: 160px;
+        overflow-y: auto;
+      }
+      .filter-checkbox-grid label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.82rem;
+        color: var(--text);
+        cursor: pointer;
+        padding: 3px 0;
+      }
+      .filter-checkbox-grid input {
+        accent-color: var(--accent);
+      }
+      .filter-range-row {
+        display: none;
+        gap: 8px;
+        margin-top: 6px;
+      }
+      .filter-range-row.open {
+        display: flex;
+      }
+      .filter-range-row input {
+        flex: 1;
+        font-family: var(--font);
+        font-size: 0.82rem;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        color: var(--text);
+        padding: 6px 10px;
+        outline: none;
+      }
+      .filter-range-row input:focus {
+        border-color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ═══ HEADER ═══ -->
+    <header class="header">
+      <div class="container">
+        <a href="#" class="logo" onclick="showView('entry')">
+          <div class="logo-icon">R</div>
+          <div>Register<span>AutoDetail</span></div>
+        </a>
+        <div class="desktop-nav">
+          <button class="nav-btn active" data-view="entry" onclick="showView('entry')">Log Entry</button>
+          <button class="nav-btn" data-view="dashboard" onclick="showView('dashboard')">Dashboard</button>
+          <div class="nav-dropdown">
+            <button class="nav-btn" data-view="settings" onclick="showView('settings')">Settings ▾</button>
+            <div class="nav-dropdown-menu">
+              <button onclick="showView('settings')">⚙ App Settings</button>
+              <button onclick="showView('dealers')">🏢 Dealerships</button>
+            </div>
+          </div>
+        </div>
+        <span class="badge" id="headerCount">0 entries</span>
+      </div>
+    </header>
+
+    <!-- ═══ TOAST CONTAINER ═══ -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ═══ VIEW: LOG ENTRY ═══ -->
+    <section class="section active" id="view-entry">
+      <div class="container" style="padding-top: 16px">
+        <div class="card">
+          <div class="card-title">Vehicle Service Log</div>
+          <form id="entryForm" onsubmit="handleSubmit(event)">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="date">Date</label>
+                <input type="date" id="date" name="date" required />
+              </div>
+              <div class="form-group">
+                <label for="dealership">Dealership <span class="req">*</span></label>
+                <select id="dealership" name="dealership" required onchange="populateServices(this.value)">
+                  <option value="">Select a dealership...</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="vin">VIN</label>
+                <div class="vin-wrap">
+                  <input type="text" id="vin" name="vin" placeholder="17-digit VIN" autocomplete="off" />
+                  <div class="vin-spinner" id="vinSpinner"></div>
+                </div>
+                <div class="field-hint">Auto-decodes Brand, Model & Year + fills Stock# when complete</div>
+              </div>
+              <div class="form-group">
+                <label for="brand">Brand <span class="req">*</span></label>
+                <input
+                  type="text"
+                  id="brand"
+                  name="brand"
+                  list="brandList"
+                  placeholder="Start typing..."
+                  autocomplete="off"
+                  required
+                />
+                <datalist id="brandList"></datalist>
+              </div>
+              <div class="form-group">
+                <label for="model">Model <span class="req">*</span></label>
+                <input
+                  type="text"
+                  id="model"
+                  name="model"
+                  list="modelList"
+                  placeholder="Start typing..."
+                  autocomplete="off"
+                  required
+                />
+                <datalist id="modelList"></datalist>
+              </div>
+              <div class="form-group">
+                <label for="year">Year <span class="req">*</span></label>
+                <input type="text" id="year" name="year" placeholder="e.g. 2025" inputmode="numeric" required />
+              </div>
+              <div class="form-group">
+                <label for="stock">Stock # <span class="req">*</span></label>
+                <input type="text" id="stock" name="stock" placeholder="Stock number" required />
+              </div>
+              <div class="form-group">
+                <label for="ro">RO #</label>
+                <input type="text" id="ro" name="ro" placeholder="Repair order #" />
+              </div>
+              <div class="form-group">
+                <label for="department">Department <span class="req">*</span></label>
+                <select id="department" name="department" required>
+                  <option value="">Select...</option>
+                  <option value="New Car">New Car</option>
+                  <option value="Used Car">Used Car</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="invoice">Invoice #</label>
+                <input type="text" id="invoice" name="invoice" placeholder="QuickBooks #" />
+              </div>
+              <div class="form-group full">
+                <label for="service">Required Service <span class="req">*</span></label>
+                <select id="service" name="service" required>
+                  <option value="">Select a service...</option>
+                </select>
+              </div>
+              <div class="form-group full">
+                <label for="notes">Notes</label>
+                <textarea id="notes" name="notes" placeholder="Additional details..."></textarea>
+              </div>
+            </div>
+            <div class="submit-bar">
+              <button type="submit" class="btn btn-primary">Submit Entry</button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                onclick="document.getElementById('entryForm').reset();setDefaultDate();editId=null;document.querySelector('#view-entry .btn-primary').textContent='Submit Entry'"
+              >
+                Clear
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ VIEW: DASHBOARD ═══ -->
+    <section class="section" id="view-dashboard">
+      <div class="container" style="padding-top: 16px">
+        <div class="stats" id="statsBar"></div>
+
+        <div class="card">
+          <div class="flex-between mb-16">
+            <div class="card-title" style="margin-bottom: 0">All Entries</div>
+            <div class="btn-group">
+              <button class="btn btn-sm btn-secondary" onclick="toggleFilterPanel()" id="filterToggleBtn">
+                Filter ▾
+              </button>
+              <button class="btn btn-sm btn-secondary" onclick="openWashModal()">Add Washes</button>
+              <button class="btn btn-sm btn-secondary" onclick="exportCSV()">Export CSV</button>
+            </div>
+          </div>
+
+          <div class="filter-panel" id="filterPanel">
+            <div class="filter-section">
+              <div class="filter-section-label">Date Range</div>
+              <div class="preset-group">
+                <button class="preset-btn" data-preset="today" onclick="setDatePreset('today')">Today</button>
+                <button class="preset-btn active" data-preset="week" onclick="setDatePreset('week')">This Week</button>
+                <button class="preset-btn" data-preset="lastweek" onclick="setDatePreset('lastweek')">Last Week</button>
+                <button class="preset-btn" data-preset="month" onclick="setDatePreset('month')">This Month</button>
+                <button class="preset-btn" data-preset="lastmonth" onclick="setDatePreset('lastmonth')">
+                  Last Month
+                </button>
+                <button class="preset-btn" data-preset="range" onclick="setDatePreset('range')">Range</button>
+              </div>
+              <div class="filter-range-row" id="filterRangeRow">
+                <input type="date" id="filterFrom" />
+                <input type="date" id="filterTo" />
+              </div>
+            </div>
+
+            <div class="filter-section">
+              <div class="filter-section-label">Dealership</div>
+              <div class="filter-checkbox-grid" id="filterDealerGrid"></div>
+            </div>
+
+            <div class="filter-section">
+              <div class="filter-section-label">Service</div>
+              <select
+                id="filterService"
+                style="
+                  width: 100%;
+                  font-family: var(--font);
+                  font-size: 0.82rem;
+                  background: var(--card);
+                  border: 1px solid var(--border);
+                  border-radius: var(--radius-sm);
+                  color: var(--text);
+                  padding: 6px 10px;
+                  outline: none;
+                "
+              >
+                <option value="">All Services</option>
+              </select>
+            </div>
+
+            <div class="filter-section">
+              <div class="btn-group">
+                <button class="btn btn-sm btn-primary" onclick="applyFilters()">Apply</button>
+                <button class="btn btn-sm" onclick="clearFilters()">Clear Filters</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="dashboardContent">
+            <div class="empty-state">
+              <div class="empty-icon">📋</div>
+              <p>No entries yet. Log your first service above.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ VIEW: SETTINGS ═══ -->
+    <section class="section" id="view-settings">
+      <div class="container" style="padding-top: 16px">
+        <div class="card">
+          <div class="card-title">Settings</div>
+          <div class="form-group">
+            <label>Google Sheets Web App URL</label>
+            <div id="sheetsUrlDisplay">
+              <span id="sheetsUrlStatus" style="color: var(--text-muted); font-size: 0.85rem">Not connected</span>
+              <button class="btn btn-sm" onclick="showSheetsUrlEditor()" style="margin-left: 8px">Update</button>
+            </div>
+            <div id="sheetsUrlEditor" style="display: none">
+              <input type="url" id="sheetsUrlSettings" placeholder="https://script.google.com/macros/s/..." />
+              <div class="btn-group" style="margin-top: 8px">
+                <button class="btn btn-sm btn-primary" onclick="saveSheetsUrl()">Save</button>
+                <button class="btn btn-sm" onclick="hideSheetsUrlEditor()">Cancel</button>
+              </div>
+            </div>
+            <div class="hint" style="margin-top: 6px">
+              After deploying the Apps Script (see collapsed section below), paste the URL here.
+            </div>
+          </div>
+          <div class="btn-group mt-16">
+            <button class="btn btn-sm btn-danger" onclick="clearAll()">Clear All Data</button>
+          </div>
+
+          <hr style="border: none; border-top: 1px solid var(--border); margin: 20px 0" />
+
+          <div class="card-title">Setup Guide</div>
+          <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.7">
+            <p><strong style="color: var(--text)">How to host this app:</strong></p>
+            <p>1. Upload this HTML file to any static host (GitHub Pages, Netlify, Vercel, or even open locally).</p>
+            <p>2. That's it — all data saves in your browser's local storage.</p>
+            <br />
+            <p><strong style="color: var(--text)">Connect to Google Sheets:</strong></p>
+            <p>1. Open your Google Sheet → <em>Extensions → Apps Script</em>.</p>
+            <p>2. Delete all existing code and paste the code block below.</p>
+            <p>3. Click <em>Deploy → New Deployment</em>.</p>
+            <p>4. Set Type: <em>Web App</em>, Execute as: <em>Me</em>, Who has access: <em>Anyone</em> → Deploy.</p>
+            <p>5. Copy the <strong>new</strong> Web App URL and paste it above.</p>
+            <p style="color: var(--gold); margin-top: 8px">
+              <strong>Data is grouped by dealership</strong> — each dealership gets its own sheet tab automatically.
+            </p>
+            <p style="color: var(--gold)">
+              <strong>IMPORTANT:</strong> You must create a <u>New Deployment</u>. Updating code without re-deploying
+              will NOT work.
+            </p>
+            <br />
+            <p>
+              <strong style="color: var(--text); cursor: pointer; user-select: none" onclick="toggleScriptCode()"
+                >▸ Google Apps Script Code</strong
+              >
+              <button class="btn btn-sm" onclick="copyScriptCode(event)" style="margin-left: 8px">Copy</button>
+            </p>
+            <pre
+              id="scriptCode"
+              style="
+                display: none;
+                background: var(--surface);
+                padding: 16px;
+                border-radius: var(--radius-sm);
+                overflow-x: auto;
+                font-family: var(--mono);
+                font-size: 0.78rem;
+                line-height: 1.5;
+                color: var(--text);
+                margin-top: 8px;
+                white-space: pre-wrap;
+              "
+            >
+function doPost(e) {
+  try {
+    var raw = e.parameter.data || (e.postData ? e.postData.contents : '');
+    var d = JSON.parse(raw);
+    var entries = d.entries || d;
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (entries.length === 0) {
+      return ContentService.createTextOutput(JSON.stringify({status:'ok', count:0})).setMimeType(ContentService.MimeType.JSON);
+    }
+    var headers = ['Date','Dealership','VIN','Brand','Model','Year','Stock#','RO#','Department','Service','Price','Invoice','Notes','Synced At'];
+
+    // Group entries by dealership
+    var groups = {};
+    entries.forEach(function(r) {
+      var key = r.dealership || 'Unknown';
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(r);
+    });
+
+    Object.keys(groups).forEach(function(key) {
+      var groupEntries = groups[key];
+      var sheet = ss.getSheetByName(key);
+      if (!sheet) sheet = ss.insertSheet(key);
+
+      var title = ['Register Auto Detail — ' + key];
+      while (title.length < headers.length) title.push('');
+      var rows = [title, headers];
+      groupEntries.forEach(function(r) {
+        rows.push([
+          r.date, r.dealership, r.vin, r.brand, r.model,
+          r.year, r.stock, r.ro, r.department, r.service,
+          r.price, r.invoice || '', r.notes, new Date().toISOString()
+        ]);
+      });
+      sheet.clear();
+      sheet.getRange(1, 1, rows.length, headers.length).setValues(rows);
+      sheet.getRange(1, 1, 1, headers.length).merge().setFontWeight('bold').setFontSize(14);
+      sheet.getRange(2, 1, 1, headers.length).setFontWeight('bold');
+    });
+
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'ok', count: entries.length
+    })).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'error', message: err.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doGet() {
+  return ContentService.createTextOutput(
+    'Register Auto Detail — Web App is live.'
+  );
+}</pre
+            >
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ VIEW: DEALERSHIPS ═══ -->
+    <section class="section" id="view-dealers">
+      <div class="container" style="padding-top: 16px">
+        <div class="card">
+          <div class="card-title">Manage Dealerships</div>
+          <div style="display: flex; gap: 6px; margin-bottom: 10px">
+            <input
+              type="text"
+              id="dealersInput"
+              placeholder="Add dealership..."
+              style="
+                flex: 1;
+                font-family: var(--font);
+                font-size: 0.85rem;
+                background: var(--surface);
+                border: 1.5px solid var(--border);
+                border-radius: var(--radius-sm);
+                color: var(--text);
+                padding: 10px 12px;
+                outline: none;
+              "
+            />
+            <button type="button" class="btn btn-sm btn-secondary" onclick="addDealerFromView()">Add</button>
+          </div>
+          <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 8px">
+            "Mobile Detail" and "CycleSprings" are pre-loaded and cannot be removed.
+          </p>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px" id="dealersTags"></div>
+        </div>
+        <div class="card" id="priceEditorCard" style="display: none">
+          <div class="flex-between mb-16">
+            <div class="card-title" style="margin-bottom: 0">Prices for <span id="priceEditorDealer"></span></div>
+            <button class="btn btn-sm" onclick="closePriceEditor()">✕</button>
+          </div>
+          <div id="priceEditorBody"></div>
+          <div class="btn-group mt-16">
+            <button class="btn btn-sm btn-primary" onclick="savePriceEditor()">Save</button>
+            <button class="btn btn-sm" onclick="closePriceEditor()">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ SERVICE WASH MODAL ═══ -->
+    <div class="modal-overlay" id="washModal" onclick="if(event.target===this)closeWashModal()">
+      <div class="modal">
+        <div class="modal-title">Add Service Washes</div>
+        <div class="form-group">
+          <label for="washDealer">Dealership</label>
+          <select
+            id="washDealer"
+            style="
+              font-family: var(--font);
+              font-size: 0.9rem;
+              background: var(--surface);
+              border: 1.5px solid var(--border);
+              border-radius: var(--radius-sm);
+              color: var(--text);
+              padding: 10px 12px;
+              outline: none;
+              width: 100%;
+            "
+          >
+            <option value="">Select...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="washCount">Number of Washes</label>
+          <input
+            type="number"
+            id="washCount"
+            value="1"
+            min="1"
+            max="200"
+            style="
+              font-family: var(--font);
+              font-size: 0.9rem;
+              background: var(--surface);
+              border: 1.5px solid var(--border);
+              border-radius: var(--radius-sm);
+              color: var(--text);
+              padding: 10px 12px;
+              outline: none;
+              width: 100%;
+            "
+          />
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-sm btn-primary" onclick="submitQuickWash()">Add</button>
+          <button class="btn btn-sm" onclick="closeWashModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ BOTTOM NAV (mobile) ═══ -->
+    <nav class="bottom-nav">
+      <button class="nav-btn active" data-view="entry" onclick="showView('entry')">
+        <span class="nav-icon">+</span>
+        <span>Log</span>
+      </button>
+      <button class="nav-btn" data-view="dashboard" onclick="showView('dashboard')">
+        <span class="nav-icon">▦</span>
+        <span>Dashboard</span>
+      </button>
+      <button class="nav-btn" data-view="dealers" onclick="showView('dealers')">
+        <span class="nav-icon">🏢</span>
+        <span>Dealers</span>
+      </button>
+      <button class="nav-btn" data-view="settings" onclick="showView('settings')">
+        <span class="nav-icon">⚙</span>
+        <span>Settings</span>
+      </button>
+    </nav>
+
+    <script>
+      // ══════════════════════════════════════════════
+      //  REGISTER AUTO DETAIL — FULL APPLICATION
+      // ══════════════════════════════════════════════
+
+      // ── Service → Price Map ──
+      const S = {
+        "PDI w/Plastic": 145,
+        Delivery: 25,
+        "Service Detail": 175,
+        "UCR w/Plastic": 175,
+        "RFL w/Plastic": 45,
+        "Delivery + XZillion": 75,
+        "Lot Prep": 145,
+        "Loaner Reclean": 145,
+        "New Car Reclean": 145,
+        "Auction Clean": 50,
+        Ceramic: 1000,
+        Reclean: 45,
+        "Showroom - New Car": 145,
+        "Showroom - Used Car": 170,
+        "Service Wash": 10,
+      }
+
+      function getPrice(svc, dealer) {
+        return cfg.dealerPrices?.[dealer]?.[svc] ?? S[svc]
+      }
+
+      // ── Brands & Models ──
+      const BRANDS = [
+        "Acura",
+        "Alfa Romeo",
+        "Aston Martin",
+        "Audi",
+        "Bentley",
+        "BMW",
+        "Buick",
+        "Cadillac",
+        "Chevrolet",
+        "Chrysler",
+        "Dodge",
+        "Ferrari",
+        "FIAT",
+        "Ford",
+        "Genesis",
+        "GMC",
+        "Honda",
+        "Hyundai",
+        "INFINITI",
+        "Jaguar",
+        "Jeep",
+        "Kia",
+        "Lamborghini",
+        "Land Rover",
+        "Lexus",
+        "Lincoln",
+        "Lotus",
+        "Maserati",
+        "Mazda",
+        "McLaren",
+        "Mercedes-Benz",
+        "MINI",
+        "Mitsubishi",
+        "Nissan",
+        "Porsche",
+        "Ram",
+        "Rivian",
+        "Rolls-Royce",
+        "Subaru",
+        "Tesla",
+        "Toyota",
+        "Volkswagen",
+        "Volvo",
+      ]
+
+      const MODELS = {
+        Acura: ["Integra", "MDX", "RDX", "TLX", "NSX", "RLX", "ILX", "ZDX", "CDX"],
+        "Alfa Romeo": ["Giulia", "Stelvio", "Tonale", "4C"],
+        "Aston Martin": ["DB11", "DBS", "DBX", "Vantage", "Valkyrie", "Vanquish"],
+        Audi: ["A3", "A4", "A5", "A6", "A7", "A8", "Q3", "Q5", "Q7", "Q8", "e-tron", "TT", "R8"],
+        Bentley: ["Bentayga", "Continental GT", "Flying Spur", "Mulsanne"],
+        BMW: [
+          "2 Series",
+          "3 Series",
+          "4 Series",
+          "5 Series",
+          "7 Series",
+          "8 Series",
+          "X1",
+          "X2",
+          "X3",
+          "X5",
+          "X7",
+          "XM",
+          "i4",
+          "iX",
+          "Z4",
+          "M3",
+          "M4",
+          "M5",
+        ],
+        Buick: ["Encore", "Enclave", "Envision", "LaCrosse", "Regal"],
+        Cadillac: ["CT4", "CT5", "CT6", "Escalade", "XT4", "XT5", "XT6", "Lyriq"],
+        Chevrolet: [
+          "Blazer",
+          "Bolt EV",
+          "Camaro",
+          "Colorado",
+          "Corvette",
+          "Equinox",
+          "Malibu",
+          "Silverado",
+          "Suburban",
+          "Tahoe",
+          "Trailblazer",
+          "Traverse",
+          "Trax",
+        ],
+        Chrysler: ["300", "Pacifica", "Voyager"],
+        Dodge: ["Charger", "Challenger", "Durango", "Grand Caravan", "Hornet"],
+        Ferrari: ["296 GTB", "812 Superfast", "F8 Tributo", "Portofino", "Roma", "SF90 Stradale", "Purosangue"],
+        FIAT: ["500", "500X", "500L"],
+        Ford: [
+          "Bronco",
+          "Edge",
+          "Escape",
+          "Explorer",
+          "F-150",
+          "Focus",
+          "Mustang",
+          "Mustang Mach-E",
+          "Ranger",
+          "Super Duty",
+          "Transit",
+        ],
+        Genesis: ["G70", "G80", "G90", "GV60", "GV70", "GV80"],
+        GMC: ["Acadia", "Canyon", "Hummer EV", "Sierra", "Terrain", "Yukon"],
+        Honda: ["Accord", "Civic", "CR-V", "HR-V", "Odyssey", "Pilot", "Passport", "Ridgeline", "Insight", "Prologue"],
+        Hyundai: ["Elantra", "IONIQ 5", "IONIQ 6", "Kona", "Palisade", "Santa Fe", "Sonata", "Tucson", "Venue"],
+        INFINITI: ["Q50", "Q60", "QX50", "QX55", "QX60", "QX80"],
+        Jaguar: ["E-Pace", "F-Pace", "F-Type", "I-Pace", "XE", "XF"],
+        Jeep: ["Cherokee", "Compass", "Gladiator", "Grand Cherokee", "Renegade", "Wrangler", "Wagoneer"],
+        Kia: [
+          "Carnival",
+          "EV6",
+          "EV9",
+          "Forte",
+          "K5",
+          "Niro",
+          "Seltos",
+          "Sportage",
+          "Sorento",
+          "Soul",
+          "Stinger",
+          "Telluride",
+        ],
+        Lamborghini: ["Aventador", "Hurac\u00e1n", "Revuelto", "Urus"],
+        "Land Rover": [
+          "Defender",
+          "Discovery",
+          "Discovery Sport",
+          "Evoque",
+          "Range Rover",
+          "Range Rover Sport",
+          "Range Rover Velar",
+        ],
+        Lexus: ["ES", "GX", "IS", "LC", "LS", "LX", "NX", "RC", "RX", "TX", "UX", "RZ"],
+        Lincoln: ["Aviator", "Corsair", "Nautilus", "Navigator", "MKZ"],
+        Lotus: ["Emira", "Evija", "Elise", "Exige"],
+        Maserati: ["Ghibli", "Grecale", "Levante", "MC20", "Quattroporte", "GranTurismo"],
+        Mazda: ["CX-30", "CX-5", "CX-50", "CX-70", "CX-9", "CX-90", "MAZDA3", "MAZDA6", "MX-5 Miata"],
+        McLaren: ["720S", "750S", "Artura", "GT", "Senna"],
+        "Mercedes-Benz": [
+          "A-Class",
+          "C-Class",
+          "CLA",
+          "E-Class",
+          "EQB",
+          "EQS",
+          "G-Class",
+          "GLA",
+          "GLB",
+          "GLC",
+          "GLE",
+          "GLS",
+          "S-Class",
+          "SL",
+        ],
+        MINI: ["Clubman", "Convertible", "Countryman", "Hardtop"],
+        Mitsubishi: ["Eclipse Cross", "Mirage", "Outlander", "Outlander Sport"],
+        Nissan: [
+          "Altima",
+          "Armada",
+          "Frontier",
+          "GT-R",
+          "Kicks",
+          "Leaf",
+          "Maxima",
+          "Murano",
+          "Pathfinder",
+          "Rogue",
+          "Sentra",
+          "Titan",
+          "Versa",
+          "Z",
+        ],
+        Porsche: ["718 Boxster", "718 Cayman", "911", "Cayenne", "Macan", "Panamera", "Taycan"],
+        Ram: ["1500", "2500", "3500", "ProMaster"],
+        Rivian: ["R1S", "R1T"],
+        "Rolls-Royce": ["Cullinan", "Ghost", "Phantom", "Spectre", "Wraith"],
+        Subaru: ["Ascent", "BRZ", "Crosstrek", "Forester", "Impreza", "Legacy", "Outback", "WRX", "Solterra"],
+        Tesla: ["Cybertruck", "Model 3", "Model S", "Model X", "Model Y"],
+        Toyota: [
+          "4Runner",
+          "bZ4X",
+          "Camry",
+          "Corolla",
+          "GR86",
+          "GR Corolla",
+          "Highlander",
+          "Land Cruiser",
+          "Prius",
+          "RAV4",
+          "Sequoia",
+          "Sienna",
+          "Tacoma",
+          "Tundra",
+          "Venza",
+        ],
+        Volkswagen: ["Arteon", "Atlas", "Golf GTI", "Golf R", "ID.4", "Jetta", "Passat", "Taos", "Tiguan"],
+        Volvo: ["C40", "EX30", "EX90", "S60", "S90", "V60", "V90", "XC40", "XC60", "XC90"],
+      }
+
+      // ── State ──
+      let entries = []
+      let cfg = { sheetsUrl: "" }
+      let dealers = []
+      let editId = null
+      let tapCount = 0
+      let tapTimer = null
+      let selectedFilterDealers = []
+
+      // ── Init ──
+      function init() {
+        load()
+
+        // Seed CycleSprings custom pricing example
+        if (!cfg.dealerPrices) cfg.dealerPrices = {}
+        if (!cfg.dealerPrices["CycleSprings"]) {
+          cfg.dealerPrices["CycleSprings"] = {
+            "WPaint & Fabric Protection - Car": 179,
+            "WPaint & Fabric Protection - SUV": 229,
+            "WPaint & Fabric Protection - Truck": 279,
+            "Jet Ski": 75,
+            Motorcycle: 85,
+          }
+          localStorage.setItem("rad_cfg", JSON.stringify(cfg))
+        }
+
+        populateServices(document.getElementById("dealership").value)
+        populateFilterServices()
+        populateDealers()
+        populateBrands()
+        setDefaultDate()
+        setDatePreset("week")
+        updateCount()
+        renderDashboard()
+
+        // Secret tap to reveal prices
+        document.getElementById("headerCount").addEventListener("click", () => {
+          tapCount++
+          clearTimeout(tapTimer)
+          tapTimer = setTimeout(() => {
+            tapCount = 0
+          }, 2000)
+          if (tapCount >= 5) {
+            tapCount = 0
+            togglePrices()
+          }
+        })
+
+        applyPriceMask()
+
+        // keyboard shortcut: Ctrl+Enter to submit
+        document.getElementById("entryForm").addEventListener("keydown", (e) => {
+          if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+            e.preventDefault()
+            document.getElementById("entryForm").requestSubmit()
+          }
+        })
+
+        // VIN auto-decode + stock# fill
+        let vinTimer
+        document.getElementById("vin").addEventListener("paste", () => setTimeout(fillStockFromVin, 50))
+        document.getElementById("vin").addEventListener("input", () => {
+          clearTimeout(vinTimer)
+          const v = document.getElementById("vin").value.trim()
+          fillStockFromVin()
+          if (v.length === 17) {
+            vinTimer = setTimeout(() => decodeVin(v.toUpperCase()), 600)
+          }
+        })
+
+        // Brand → update model datalist
+        document.getElementById("brand").addEventListener("input", () => {
+          populateModels(document.getElementById("brand").value)
+        })
+      }
+
+      // ─── LocalStorage ───
+      function load() {
+        try {
+          entries = JSON.parse(localStorage.getItem("rad_entries")) || []
+        } catch {
+          entries = []
+        }
+        try {
+          cfg = JSON.parse(localStorage.getItem("rad_cfg")) || { sheetsUrl: "", favDealer: "" }
+        } catch {
+          cfg = { sheetsUrl: "", favDealer: "" }
+        }
+        try {
+          dealers = JSON.parse(localStorage.getItem("rad_dealers")) || []
+        } catch {
+          dealers = []
+        }
+        const el = document.getElementById("sheetsUrlSettings")
+        if (el) el.value = cfg.sheetsUrl || ""
+        const st = document.getElementById("sheetsUrlStatus")
+        if (st) st.textContent = cfg.sheetsUrl ? "Connected" : "Not connected"
+      }
+
+      function save() {
+        localStorage.setItem("rad_entries", JSON.stringify(entries))
+        localStorage.setItem("rad_dealers", JSON.stringify(dealers))
+        updateCount()
+      }
+
+      let pricesRevealed = false
+
+      function applyPriceMask() {
+        document.body.classList.toggle("prices-hidden", !pricesRevealed)
+      }
+
+      function togglePrices() {
+        pricesRevealed = !pricesRevealed
+        applyPriceMask()
+        renderDashboard()
+      }
+
+      function showSheetsUrlEditor() {
+        document.getElementById("sheetsUrlDisplay").style.display = "none"
+        const editor = document.getElementById("sheetsUrlEditor")
+        editor.style.display = "block"
+        document.getElementById("sheetsUrlSettings").value = cfg.sheetsUrl || ""
+      }
+
+      function hideSheetsUrlEditor() {
+        document.getElementById("sheetsUrlEditor").style.display = "none"
+        document.getElementById("sheetsUrlDisplay").style.display = "block"
+      }
+
+      function saveSheetsUrl() {
+        const el = document.getElementById("sheetsUrlSettings")
+        cfg.sheetsUrl = el.value.trim()
+        localStorage.setItem("rad_cfg", JSON.stringify(cfg))
+        document.getElementById("sheetsUrlStatus").textContent = cfg.sheetsUrl ? "Connected" : "Not connected"
+        hideSheetsUrlEditor()
+      }
+
+      function toggleScriptCode() {
+        const pre = document.getElementById("scriptCode")
+        const isHidden = pre.style.display === "none"
+        pre.style.display = isHidden ? "block" : "none"
+        const s = document.querySelector('[onclick="toggleScriptCode()"]')
+        if (s) s.textContent = (isHidden ? "▾" : "▸") + " Google Apps Script Code"
+      }
+
+      function copyScriptCode(e) {
+        e.stopPropagation()
+        const code = document.getElementById("scriptCode").textContent.trim()
+        navigator.clipboard.writeText(code).then(() => {
+          showToast("Script code copied!", "success")
+        })
+      }
+
+      // ─── Populate Service Dropdowns ───
+      function populateServices(forDealer) {
+        const sel = document.getElementById("service")
+        sel.innerHTML = '<option value="">Select a service...</option>'
+        const seen = new Set()
+        const add = (k) => {
+          if (seen.has(k)) return
+          seen.add(k)
+          const o = document.createElement("option")
+          o.value = k
+          o.textContent = k
+          sel.appendChild(o)
+        }
+        Object.keys(S)
+          .filter((k) => k !== "Service Wash")
+          .forEach(add)
+        if (forDealer && cfg.dealerPrices?.[forDealer]) {
+          Object.keys(cfg.dealerPrices[forDealer])
+            .filter((k) => !(k in S) && k !== "Service Wash")
+            .forEach(add)
+        }
+      }
+
+      function populateFilterServices() {
+        const sel = document.getElementById("filterService")
+        Object.keys(S).forEach((k) => {
+          const o = document.createElement("option")
+          o.value = k
+          o.textContent = k
+          sel.appendChild(o)
+        })
+      }
+
+      // ─── Default Date ───
+      function setDefaultDate() {
+        const d = new Date()
+        const ds =
+          d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0")
+        document.getElementById("date").value = ds
+      }
+
+      // ─── Counter ───
+      function updateCount() {
+        const c = document.getElementById("headerCount")
+        const n = entries.length
+        if (n === 0) {
+          c.textContent = "No entries"
+        } else {
+          c.textContent = n + " entr" + (n === 1 ? "y" : "ies")
+        }
+      }
+
+      // ─── View Switching ───
+      function showView(v) {
+        document.querySelectorAll(".section").forEach((el) => el.classList.remove("active"))
+        document.getElementById("view-" + v).classList.add("active")
+        document.querySelectorAll(".nav-btn[data-view]").forEach((el) => {
+          if (el.dataset.view === "settings") {
+            el.classList.toggle("active", v === "settings" || v === "dealers")
+          } else {
+            el.classList.toggle("active", el.dataset.view === v)
+          }
+        })
+        if (v === "dashboard") renderDashboard()
+        if (v === "dealers") populateDealers()
+      }
+
+      // ─── Populate Dealers ───
+      function populateDealers() {
+        const sel = document.getElementById("dealership")
+        const cur = sel.value
+
+        sel.innerHTML = '<option value="">Select a dealership...</option>'
+        ;["Mobile Detail", "CycleSprings", ...dealers].forEach((d) => {
+          const o = document.createElement("option")
+          o.value = d
+          o.textContent = d
+          sel.appendChild(o)
+        })
+        const fav = cfg.favDealer
+        sel.value =
+          cur && [...sel.options].some((o) => o.value === cur)
+            ? cur
+            : fav && [...sel.options].some((o) => o.value === fav)
+              ? fav
+              : ""
+
+        // Dealerships view tag list
+        const tags = document.getElementById("dealersTags")
+        if (tags) {
+          const all = ["Mobile Detail", "CycleSprings", ...dealers]
+          tags.innerHTML = all
+            .map((d) => {
+              const isFav = cfg.favDealer === d
+              return `<span class="dealer-tag"><span class="fav-star" onclick="toggleFav('${d}')">${isFav ? "★" : "☆"}</span> ${d} <span class="del" onclick="openPriceEditor('${d}')" title="Prices">$</span>${
+                d === "Mobile Detail" || d === "CycleSprings"
+                  ? ""
+                  : ' <span class="del" onclick="removeDealer(\'' + d + "')\">\u2715</span>"
+              }</span>`
+            })
+            .join("")
+        }
+      }
+
+      function addDealer() {
+        showToast("Use the Dealers tab to manage dealerships.", "info")
+      }
+
+      function addDealerFromView() {
+        const inp = document.getElementById("dealersInput")
+        const v = inp.value.trim()
+        if (!v) return
+        addDealerToList(v)
+        inp.value = ""
+      }
+
+      function addDealerToList(v) {
+        if (v === "Mobile Detail" || v === "CycleSprings") {
+          showToast(v + " is already in the list.", "info")
+          return
+        }
+        if (dealers.includes(v)) {
+          showToast("This dealership is already in the list.", "info")
+          return
+        }
+        dealers.push(v)
+        save()
+        populateDealers()
+        document.getElementById("dealership").value = v
+      }
+
+      function toggleFav(d) {
+        cfg.favDealer = cfg.favDealer === d ? "" : d
+        localStorage.setItem("rad_cfg", JSON.stringify(cfg))
+        populateDealers()
+      }
+
+      function setDefaultDealership() {
+        const sel = document.getElementById("dealership")
+        const fav = cfg.favDealer
+        sel.value = fav && [...sel.options].some((o) => o.value === fav) ? fav : ""
+      }
+
+      function removeDealer(d) {
+        dealers = dealers.filter((x) => x !== d)
+        if (cfg.favDealer === d) cfg.favDealer = ""
+        save()
+        populateDealers()
+        if (document.getElementById("dealership").value === d) {
+          setDefaultDealership()
+        }
+      }
+
+      let priceEditDealer = ""
+
+      function openPriceEditor(d) {
+        priceEditDealer = d
+        document.getElementById("priceEditorDealer").textContent = d
+        const body = document.getElementById("priceEditorBody")
+        const prices = cfg.dealerPrices?.[d] || {}
+        const allSvcs = [...Object.keys(S)]
+        const customSvcs = Object.keys(prices).filter((k) => !(k in S))
+        let h = "<table style='width:100%;font-size:0.82rem'><tr><th>Service</th><th>Price</th></tr>"
+        allSvcs.forEach((k) => {
+          const v = prices[k] ?? S[k]
+          h += `<tr><td>${k}</td><td><input type='number' step='1' min='0' value='${v}' id='pe-${k.replace(/\s/g, "_")}' style='width:80px;padding:4px 6px;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text)'></td></tr>`
+        })
+        if (customSvcs.length) {
+          h += "<tr><td colspan='2' style='padding-top:8px;color:var(--gold);font-weight:600'>Custom Services</td></tr>"
+          customSvcs.forEach((k) => {
+            h += `<tr><td>${k}</td><td><input type='number' step='1' min='0' value='${prices[k]}' id='pe-${k.replace(/\s/g, "_")}' style='width:80px;padding:4px 6px;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text)'> <span class="del" onclick="removeCustomService('${d}','${k}')">✕</span></td></tr>`
+          })
+        }
+        h += `<tr><td colspan='2' style='padding-top:8px'><button class="btn btn-sm" onclick="addCustomServiceRow()">+ Add Custom Service</button></td></tr>`
+        h += "</table>"
+        body.innerHTML = h
+        document.getElementById("priceEditorCard").style.display = "block"
+      }
+
+      function closePriceEditor() {
+        document.getElementById("priceEditorCard").style.display = "none"
+      }
+
+      function addCustomServiceRow() {
+        const body = document.getElementById("priceEditorBody")
+        const tbl = body.querySelector("table")
+        const tr = document.createElement("tr")
+        tr.id = "pe-custom-row"
+        tr.innerHTML = `<td><input type='text' id='pe-custom-name' placeholder='Service name' style='width:100%;padding:4px 6px;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text)'></td><td><input type='number' step='1' min='0' id='pe-custom-price' placeholder='Price' style='width:80px;padding:4px 6px;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text)'></td>`
+        tbl.querySelector("tr:last-child").before(tr)
+      }
+
+      function savePriceEditor() {
+        if (!cfg.dealerPrices) cfg.dealerPrices = {}
+        if (!cfg.dealerPrices[priceEditDealer]) cfg.dealerPrices[priceEditDealer] = {}
+        const prices = cfg.dealerPrices[priceEditDealer]
+        const allSvcs = [...Object.keys(S)]
+        allSvcs.forEach((k) => {
+          const el = document.getElementById("pe-" + k.replace(/\s/g, "_"))
+          if (el) {
+            const v = parseFloat(el.value)
+            if (v !== S[k]) prices[k] = v
+            else delete prices[k]
+          }
+        })
+        // Add custom service from input row if present
+        const nameEl = document.getElementById("pe-custom-name")
+        const priceEl = document.getElementById("pe-custom-price")
+        if (nameEl && priceEl && nameEl.value.trim()) {
+          prices[nameEl.value.trim()] = parseFloat(priceEl.value) || 0
+        }
+        // Clean up empty dealer entry
+        if (Object.keys(prices).length === 0) delete cfg.dealerPrices[priceEditDealer]
+        localStorage.setItem("rad_cfg", JSON.stringify(cfg))
+        closePriceEditor()
+        populateDealers()
+        populateServices(document.getElementById("dealership").value)
+        showToast("Prices saved for " + priceEditDealer, "success")
+      }
+
+      function removeCustomService(d, k) {
+        if (!cfg.dealerPrices) return
+        if (!cfg.dealerPrices[d]) return
+        delete cfg.dealerPrices[d][k]
+        if (Object.keys(cfg.dealerPrices[d]).length === 0) delete cfg.dealerPrices[d]
+        localStorage.setItem("rad_cfg", JSON.stringify(cfg))
+        openPriceEditor(d)
+      }
+
+      // ─── Populate Brands & Models ───
+      function populateBrands() {
+        const dl = document.getElementById("brandList")
+        dl.innerHTML = BRANDS.map((b) => `<option value="${b}">`).join("")
+      }
+
+      function populateModels(brand) {
+        const dl = document.getElementById("modelList")
+        const models = MODELS[brand]
+        dl.innerHTML = models ? models.map((m) => `<option value="${m}">`).join("") : ""
+      }
+
+      // ─── VIN Decode (NHTSA) ───
+      async function decodeVin(vin) {
+        const sp = document.getElementById("vinSpinner")
+        sp.style.display = "block"
+        try {
+          let res = await fetch("https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/" + vin + "?format=json")
+          if (!res.ok) throw new Error("HTTP " + res.status)
+          let data = await res.json()
+          let r = data && data.Results ? data.Results[0] : null
+          if (r && r.Make && r.Make !== "") {
+            document.getElementById("brand").value = r.Make
+            populateModels(r.Make)
+            if (r.Model) document.getElementById("model").value = r.Model
+            if (r.ModelYear) document.getElementById("year").value = r.ModelYear
+            showToast("VIN decoded: " + r.Make + " " + (r.Model || "") + " " + (r.ModelYear || ""), "success")
+          } else {
+            showToast("VIN decode returned no data. Try entering manually.", "info")
+          }
+        } catch (err) {
+          // Direct call failed (CORS from file:// etc) — try via proxy
+          try {
+            const proxy = "https://api.allorigins.win/raw?url="
+            const target = "https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/" + vin + "?format=json"
+            const res = await fetch(proxy + encodeURIComponent(target))
+            const data = await res.json()
+            const r = data && data.Results ? data.Results[0] : null
+            if (r && r.Make && r.Make !== "") {
+              document.getElementById("brand").value = r.Make
+              populateModels(r.Make)
+              if (r.Model) document.getElementById("model").value = r.Model
+              if (r.ModelYear) document.getElementById("year").value = r.ModelYear
+              showToast(
+                "VIN decoded (via proxy): " + r.Make + " " + (r.Model || "") + " " + (r.ModelYear || ""),
+                "success",
+              )
+              sp.style.display = "none"
+              return
+            }
+          } catch (err2) {
+            console.error("VIN proxy also failed:", err2)
+          }
+          showToast("VIN decode failed. Check console or type manually.", "error")
+          console.error("VIN decode error:", err)
+        } finally {
+          sp.style.display = "none"
+        }
+      }
+
+      function fillStockFromVin() {
+        const v = document.getElementById("vin").value.trim()
+        if (v.length === 17) {
+          document.getElementById("stock").value = v.slice(-8).toUpperCase()
+        }
+      }
+
+      // ─── Edit Entry ───
+      function editEntry(id) {
+        const e = entries.find((x) => x.id === id)
+        if (!e) return
+        editId = id
+        document.getElementById("date").value = e.date
+        document.getElementById("dealership").value = e.dealership
+        populateServices(e.dealership)
+        document.getElementById("vin").value = e.vin
+        document.getElementById("brand").value = e.brand
+        populateModels(e.brand)
+        document.getElementById("model").value = e.model
+        document.getElementById("year").value = e.year
+        document.getElementById("stock").value = e.stock
+        document.getElementById("ro").value = e.ro
+        document.getElementById("department").value = e.department
+        document.getElementById("service").value = e.service
+        document.getElementById("notes").value = e.notes
+        document.getElementById("invoice").value = e.invoice || ""
+        document.querySelector("#view-entry .btn-primary").textContent = "Update Entry"
+        showView("entry")
+      }
+
+      // ─── Form Submit ───
+      function handleSubmit(e) {
+        e.preventDefault()
+        const fd = new FormData(e.target)
+        const svc = fd.get("service")
+        const dealer = fd.get("dealership")
+        const brand = fd.get("brand")
+        const model = fd.get("model")
+        const stock = fd.get("stock")
+        const dept = fd.get("department")
+        if (!dealer) {
+          showToast("Please select a dealership.", "error")
+          return
+        }
+        if (!brand) {
+          showToast("Please enter the brand.", "error")
+          return
+        }
+        if (!model) {
+          showToast("Please enter the model.", "error")
+          return
+        }
+        if (!stock) {
+          showToast("Please enter the stock #.", "error")
+          return
+        }
+        if (!dept) {
+          showToast("Please select a department.", "error")
+          return
+        }
+        const year = fd.get("year")
+        if (!year) {
+          showToast("Please enter the year.", "error")
+          return
+        }
+        if (!svc) {
+          showToast("Please select a service.", "error")
+          return
+        }
+        const price = getPrice(svc, dealer)
+        if (price === undefined) {
+          showToast("Invalid service selected.", "error")
+          return
+        }
+
+        const entry = {
+          id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2),
+          date: fd.get("date") || "",
+          dealership: fd.get("dealership") || "",
+          vin: fd.get("vin") || "",
+          brand: fd.get("brand") || "",
+          model: fd.get("model") || "",
+          year: fd.get("year") || "",
+          stock: fd.get("stock") || "",
+          ro: fd.get("ro") || "",
+          department: fd.get("department") || "",
+          service: svc,
+          price: price,
+          notes: fd.get("notes") || "",
+          invoice: fd.get("invoice") || "",
+          created: Date.now(),
+        }
+
+        if (editId) {
+          const i = entries.findIndex((x) => x.id === editId)
+          if (i !== -1) entries[i] = { ...entry, id: editId, created: entries[i].created }
+          editId = null
+        } else {
+          entries.push(entry)
+        }
+        document.querySelector("#view-entry .btn-primary").textContent = "Submit Entry"
+        save()
+        showToast("Entry logged \u2014 " + svc, "success")
+
+        e.target.reset()
+        setDefaultDate()
+        setDefaultDealership()
+        autoSync()
+      }
+
+      // ─── Quick Wash ───
+      function openWashModal() {
+        populateWashDealers()
+        document.getElementById("washCount").value = 1
+        document.getElementById("washModal").classList.add("open")
+        document.getElementById("washDealer").focus()
+      }
+
+      function closeWashModal() {
+        document.getElementById("washModal").classList.remove("open")
+      }
+
+      // Close modal on Escape
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeWashModal()
+      })
+
+      function populateWashDealers() {
+        const sel = document.getElementById("washDealer")
+        if (!sel) return
+        sel.innerHTML = '<option value="">Select...</option>'
+        ;["Mobile Detail", "CycleSprings", ...dealers].forEach((d) => {
+          const o = document.createElement("option")
+          o.value = d
+          o.textContent = d
+          sel.appendChild(o)
+        })
+      }
+
+      function submitQuickWash() {
+        const dealer = document.getElementById("washDealer").value
+        const count = Math.max(1, parseInt(document.getElementById("washCount").value) || 1)
+        if (!dealer) {
+          showToast("Select a dealership.", "error")
+          return
+        }
+        const today = new Date()
+        const ds =
+          today.getFullYear() +
+          "-" +
+          String(today.getMonth() + 1).padStart(2, "0") +
+          "-" +
+          String(today.getDate()).padStart(2, "0")
+        for (let i = 0; i < count; i++) {
+          entries.push({
+            id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2),
+            date: ds,
+            dealership: dealer,
+            vin: "",
+            brand: "",
+            model: "",
+            year: "",
+            stock: "",
+            ro: "",
+            department: "Service",
+            service: "Service Wash",
+            price: 10,
+            notes: "Quick wash",
+            invoice: "",
+            created: Date.now(),
+          })
+        }
+        save()
+        closeWashModal()
+        renderDashboard()
+        showToast(count + " wash(es) added for " + dealer, "success")
+        autoSync()
+      }
+
+      // ─── Delete Entry ───
+      function deleteEntry(id) {
+        if (!confirm("Delete this entry?")) return
+        entries = entries.filter((e) => e.id !== id)
+        save()
+        renderDashboard()
+        showToast("Entry deleted.", "info")
+        autoSync()
+      }
+
+      // ─── Filter Panel ───
+      function toggleFilterPanel() {
+        const panel = document.getElementById("filterPanel")
+        const btn = document.getElementById("filterToggleBtn")
+        const open = panel.classList.toggle("open")
+        btn.textContent = open ? "Filter ▴" : "Filter ▾"
+        if (open) {
+          renderFilterDealers()
+          if (!document.getElementById("filterFrom").value) setDatePreset("week")
+        }
+      }
+
+      function renderFilterDealers() {
+        const grid = document.getElementById("filterDealerGrid")
+        if (!grid) return
+        const all = [
+          "Mobile Detail",
+          "CycleSprings",
+          ...dealers.filter((d) => d !== "Mobile Detail" && d !== "CycleSprings"),
+        ]
+        grid.innerHTML = all
+          .map((d) => {
+            const checked = selectedFilterDealers.includes(d) ? "checked" : ""
+            return `<label><input type="checkbox" value="${d}" ${checked}> ${d}</label>`
+          })
+          .join("")
+      }
+
+      function setDatePreset(preset) {
+        document
+          .querySelectorAll(".preset-btn")
+          .forEach((b) => b.classList.toggle("active", b.dataset.preset === preset))
+        const fromEl = document.getElementById("filterFrom")
+        const toEl = document.getElementById("filterTo")
+        const rangeRow = document.getElementById("filterRangeRow")
+        const fmt = (d) =>
+          d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0")
+        const today = new Date()
+        const todayStr = fmt(today)
+
+        rangeRow.classList.toggle("open", preset === "range")
+
+        if (preset === "range") {
+          fromEl.value = ""
+          toEl.value = ""
+          return
+        }
+
+        if (preset === "today") {
+          fromEl.value = todayStr
+          toEl.value = todayStr
+        } else if (preset === "week" || preset === "lastweek") {
+          const day = today.getDay()
+          const sun = new Date(today)
+          sun.setDate(today.getDate() - day + (preset === "lastweek" ? -7 : 0))
+          const sat = new Date(sun)
+          sat.setDate(sun.getDate() + 6)
+          fromEl.value = fmt(sun)
+          toEl.value = fmt(sat)
+        } else if (preset === "month") {
+          const first = new Date(today.getFullYear(), today.getMonth(), 1)
+          const last = new Date(today.getFullYear(), today.getMonth() + 1, 0)
+          fromEl.value = fmt(first)
+          toEl.value = fmt(last)
+        } else if (preset === "lastmonth") {
+          const first = new Date(today.getFullYear(), today.getMonth() - 1, 1)
+          const last = new Date(today.getFullYear(), today.getMonth(), 0)
+          fromEl.value = fmt(first)
+          toEl.value = fmt(last)
+        }
+      }
+
+      function applyFilters() {
+        // Read dealership checkboxes
+        selectedFilterDealers = []
+        document
+          .querySelectorAll("#filterDealerGrid input:checked")
+          .forEach((cb) => selectedFilterDealers.push(cb.value))
+        renderDashboard()
+        toggleFilterPanel()
+      }
+
+      function clearFilters() {
+        selectedFilterDealers = []
+        document.getElementById("filterService").value = ""
+        setDatePreset("week")
+        renderDashboard()
+        toggleFilterPanel()
+      }
+
+      // ─── Week Helper ───
+      function getWeek(dateStr) {
+        const d = new Date(dateStr + "T12:00:00")
+        const y = d.getFullYear()
+        const start = new Date(y, 0, 1)
+        const days = Math.floor((d - start) / 86400000)
+        const w = Math.ceil((days + start.getDay() + 1) / 7)
+        return { year: y, week: w, label: "Week " + w + ", " + y }
+      }
+
+      function weekKey(w) {
+        return w.year + "-" + String(w.week).padStart(2, "0")
+      }
+
+      // ─── Render Dashboard ───
+      function renderDashboard() {
+        const from = document.getElementById("filterFrom").value
+        const to = document.getElementById("filterTo").value
+        const svcFilter = document.getElementById("filterService").value
+
+        let filtered = entries.filter((e) => {
+          if (from && e.date < from) return false
+          if (to && e.date > to) return false
+          if (selectedFilterDealers.length > 0 && !selectedFilterDealers.includes(e.dealership)) return false
+          if (svcFilter && e.service !== svcFilter) return false
+          return true
+        })
+
+        // Stats
+        const today = new Date()
+        const todayStr =
+          today.getFullYear() +
+          "-" +
+          String(today.getMonth() + 1).padStart(2, "0") +
+          "-" +
+          String(today.getDate()).padStart(2, "0")
+        const todayEntries = filtered.filter((e) => e.date === todayStr)
+        const totalRev = filtered.reduce((s, e) => s + (e.price || 0), 0)
+        const todayRev = todayEntries.reduce((s, e) => s + (e.price || 0), 0)
+
+        document.getElementById("statsBar").innerHTML = `
+        <div class="stat"><div class="stat-val">${filtered.length}</div><div class="stat-lbl">Total Entries</div></div>
+        <div class="stat"><div class="stat-val"><span class="price-mask">$${totalRev.toLocaleString()}</span></div><div class="stat-lbl">Total Revenue</div></div>
+        <div class="stat"><div class="stat-val">${todayEntries.length}</div><div class="stat-lbl">Today</div></div>
+        <div class="stat"><div class="stat-val"><span class="price-mask">$${todayRev.toLocaleString()}</span></div><div class="stat-lbl">Today Rev</div></div>
+      `
+
+        const container = document.getElementById("dashboardContent")
+
+        if (filtered.length === 0) {
+          container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📋</div>
+            <p>${entries.length === 0 ? "No entries yet. Log your first service above." : "No entries match your filters."}</p>
+          </div>`
+          return
+        }
+
+        // Group by week → dealership
+        const groups = {}
+        filtered.forEach((e) => {
+          const w = getWeek(e.date)
+          const wk = weekKey(w)
+          if (!groups[wk]) groups[wk] = { label: w.label, dealers: {} }
+          const d = e.dealership || "(No Dealership)"
+          if (!groups[wk].dealers[d]) groups[wk].dealers[d] = []
+          groups[wk].dealers[d].push(e)
+        })
+
+        // Sort weeks descending
+        const sortedWeeks = Object.keys(groups).sort().reverse()
+
+        let html = ""
+        sortedWeeks.forEach((wk) => {
+          const g = groups[wk]
+          let weekTotal = 0
+          let dealerHtml = ""
+          const dealerNames = Object.keys(g.dealers).sort()
+          dealerNames.forEach((d) => {
+            const rows = g.dealers[d]
+            const dealerRev = rows.reduce((s, r) => s + (r.price || 0), 0)
+            weekTotal += dealerRev
+            dealerHtml += `
+            <div class="dealership-group">
+              <div class="dealership-header">
+                <span class="dealership-name">${d}</span>
+                <span class="dealership-count">${rows.length} entries · <span class="price-mask">$${dealerRev.toLocaleString()}</span></span>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th class="always-show">Date</th>
+                      <th>VIN</th>
+                      <th>Brand</th>
+                      <th>Model</th>
+                      <th>Year</th>
+                      <th>Stock</th>
+                      <th>RO</th>
+                      <th>Dept</th>
+                      <th class="always-show">Service</th>
+                      <th class="always-show">Price</th>
+                      <th>Invoice</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${rows
+                      .map(
+                        (r) => `
+                      <tr>
+                        <td class="always-show">${r.date}</td>
+                        <td><span class="truncate" title="${r.vin}">${r.vin || "—"}</span></td>
+                        <td>${r.brand || "—"}</td>
+                        <td>${r.model || "—"}</td>
+                        <td>${r.year || "—"}</td>
+                        <td>${r.stock || "—"}</td>
+                        <td>${r.ro || "—"}</td>
+                        <td>${r.department || "—"}</td>
+                        <td class="always-show"><span class="svc-badge">${r.service}</span></td>
+                        <td class="always-show"><span class="price-cell"><span class="price-mask">$${r.price}</span></span></td>
+                        <td>${r.invoice || "—"}</td>
+                        <td style="display:flex;gap:4px">
+                          <button class="btn btn-sm btn-secondary" onclick="editEntry('${r.id}')" title="Edit">✎</button>
+                          <button class="btn btn-sm btn-danger" onclick="deleteEntry('${r.id}')" title="Delete">✕</button>
+                        </td>
+                      </tr>
+                    `,
+                      )
+                      .join("")}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          `
+          })
+
+          html += `
+          <div class="week-group">
+            <div class="week-header">
+              <div class="week-label">
+                ${g.label}
+                <span class="week-range">(${dealerNames.length} dealer${dealerNames.length !== 1 ? "s" : ""})</span>
+              </div>
+              <div class="week-total"><span class="price-mask">$${weekTotal.toLocaleString()}</span></div>
+            </div>
+            ${dealerHtml}
+          </div>
+        `
+        })
+
+        container.innerHTML = html
+      }
+
+      // ─── Toggle Settings ───
+      function toggleSettings() {
+        showView("settings")
+      }
+
+      // ─── CSV Export ───
+      function exportCSV() {
+        const headers = [
+          "Date",
+          "Dealership",
+          "VIN",
+          "Brand",
+          "Model",
+          "Year",
+          "Stock#",
+          "RO#",
+          "Department",
+          "Service",
+          "Price",
+          "Invoice",
+          "Notes",
+        ]
+        const rows = entries.map((e) => [
+          e.date,
+          e.dealership,
+          e.vin,
+          e.brand,
+          e.model,
+          e.year,
+          e.stock,
+          e.ro,
+          e.department,
+          e.service,
+          e.price,
+          e.invoice || "",
+          e.notes,
+        ])
+
+        // Sort: group by dealership then date
+        rows.sort((a, b) => {
+          const dc = (a[1] || "").localeCompare(b[1] || "")
+          if (dc !== 0) return dc
+          return (a[0] || "").localeCompare(b[0] || "")
+        })
+
+        const csv = [headers, ...rows]
+          .map((row) =>
+            row
+              .map((cell) => {
+                if (cell === null || cell === undefined) return ""
+                const s = String(cell)
+                if (s.includes(",") || s.includes('"') || s.includes("\n")) {
+                  return '"' + s.replace(/"/g, '""') + '"'
+                }
+                return s
+              })
+              .join(","),
+          )
+          .join("\n")
+
+        const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement("a")
+        a.href = url
+        a.download = "register-auto-detail-" + new Date().toISOString().slice(0, 10) + ".csv"
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+        showToast("CSV exported.", "success")
+      }
+
+      // ─── Send to Google Sheets (full replace) ───
+      let syncing = false
+      let syncTimer
+
+      function autoSync() {
+        if (!cfg.sheetsUrl || syncing) return
+        clearTimeout(syncTimer)
+        syncTimer = setTimeout(sendToSheets, 1500)
+      }
+
+      async function sendToSheets() {
+        const url = cfg.sheetsUrl
+        if (!url || entries.length === 0) {
+          showToast("No entries to sync.", "info")
+          return
+        }
+        if (syncing) return
+        syncing = true
+
+        const payload = entries.map((e) => ({
+          date: e.date,
+          dealership: e.dealership,
+          vin: e.vin,
+          brand: e.brand,
+          model: e.model,
+          year: e.year,
+          stock: e.stock,
+          ro: e.ro,
+          department: e.department,
+          service: e.service,
+          price: e.price,
+          invoice: e.invoice || "",
+          notes: e.notes,
+        }))
+        const body = new URLSearchParams({ data: JSON.stringify({ entries: payload }) })
+
+        try {
+          const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body,
+          })
+          const text = await res.text()
+          let ok = false
+          try {
+            const j = JSON.parse(text)
+            ok = j.status === "ok"
+          } catch {}
+          if (!ok) throw new Error("Response: " + text.slice(0, 100))
+
+          showToast(
+            entries.length + " entr" + (entries.length === 1 ? "y" : "ies") + " synced to Google Sheets.",
+            "success",
+          )
+        } catch (err) {
+          showToast("Sync failed. Re-deploy Apps Script with the latest code from Settings.", "error")
+          console.error("Sheets send error:", err)
+        } finally {
+          syncing = false
+        }
+      }
+
+      // ─── Clear All ───
+      function clearAll() {
+        if (!confirm("Delete ALL entries? This cannot be undone.")) return
+        entries = []
+        save()
+        renderDashboard()
+        showToast("All data cleared.", "info")
+      }
+
+      // ─── Toast ───
+      function showToast(msg, type) {
+        type = type || "info"
+        const c = document.getElementById("toastContainer")
+        const t = document.createElement("div")
+        t.className = "toast " + type
+        t.textContent = msg
+        c.appendChild(t)
+        setTimeout(() => {
+          t.style.opacity = "0"
+          t.style.transition = "opacity .3s"
+          setTimeout(() => t.remove(), 300)
+        }, 3000)
+      }
+
+      // ─── Boot ───
+      document.addEventListener("DOMContentLoaded", init)
+    </script>
+  </body>
+</html>
