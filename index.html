@@ -1319,11 +1319,11 @@
             <p>4. Set Type: <em>Web App</em>, Execute as: <em>Me</em>, Who has access: <em>Anyone</em> → Deploy.</p>
             <p>5. Copy the <strong>new</strong> Web App URL and paste it above.</p>
             <p style="color: var(--gold); margin-top: 8px">
-              <strong>Data is grouped by dealership</strong> — each dealership gets its own sheet tab automatically.
+              <strong>All data is shared</strong> — entries from every user sync to the same sheet. The dashboard reads
+              from the sheet so everyone sees the same data.
             </p>
             <p style="color: var(--gold)">
-              <strong>IMPORTANT:</strong> You must create a <u>New Deployment</u>. Updating code without re-deploying
-              will NOT work.
+              <strong>IMPORTANT:</strong> You must create a <u>New Deployment</u> after updating the script code.
             </p>
             <br />
             <p>
@@ -1354,12 +1354,12 @@ function doPost(e) {
     var d = JSON.parse(raw);
     var entries = d.entries || d;
     var ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (!Array.isArray(entries)) entries = [entries];
     if (entries.length === 0) {
       return ContentService.createTextOutput(JSON.stringify({status:'ok', count:0})).setMimeType(ContentService.MimeType.JSON);
     }
-    var headers = ['Date','Dealership','VIN','Brand','Model','Year','Stock#','RO#','Department','Service','Price','Invoice','Notes','Synced At'];
+    var headers = ['Date','Dealership','VIN','Brand','Model','Year','Stock#','RO#','Department','Service','Price','Invoice','Notes','ID','Synced At'];
 
-    // Group entries by dealership
     var groups = {};
     entries.forEach(function(r) {
       var key = r.dealership || 'Unknown';
@@ -1370,38 +1370,73 @@ function doPost(e) {
     Object.keys(groups).forEach(function(key) {
       var groupEntries = groups[key];
       var sheet = ss.getSheetByName(key);
-      if (!sheet) sheet = ss.insertSheet(key);
-
-      var title = ['Register Auto Detail — ' + key];
-      while (title.length < headers.length) title.push('');
-      var rows = [title, headers];
-      groupEntries.forEach(function(r) {
-        rows.push([
-          r.date, r.dealership, r.vin, r.brand, r.model,
-          r.year, r.stock, r.ro, r.department, r.service,
-          r.price, r.invoice || '', r.notes, new Date().toISOString()
-        ]);
+      if (!sheet) {
+        sheet = ss.insertSheet(key);
+        var title = ['Register Auto Detail — ' + key];
+        while (title.length < headers.length) title.push('');
+        sheet.getRange(1, 1, 1, headers.length).setValues([title]);
+        sheet.getRange(1, 1, 1, headers.length).merge().setFontWeight('bold').setFontSize(14);
+        sheet.getRange(2, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
+      }
+      var lastRow = sheet.getLastRow();
+      if (lastRow < 2) {
+        var titleRow = ['Register Auto Detail — ' + key];
+        while (titleRow.length < headers.length) titleRow.push('');
+        sheet.getRange(1, 1, 1, headers.length).setValues([titleRow]);
+        sheet.getRange(1, 1, 1, headers.length).merge().setFontWeight('bold').setFontSize(14);
+        sheet.getRange(2, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
+        lastRow = 2;
+      }
+      var rows = groupEntries.map(function(r) {
+        return [r.date, r.dealership, r.vin, r.brand, r.model, r.year, r.stock, r.ro, r.department, r.service, r.price, r.invoice || '', r.notes, r.id || '', new Date().toISOString()];
       });
-      sheet.clear();
-      sheet.getRange(1, 1, rows.length, headers.length).setValues(rows);
-      sheet.getRange(1, 1, 1, headers.length).merge().setFontWeight('bold').setFontSize(14);
-      sheet.getRange(2, 1, 1, headers.length).setFontWeight('bold');
+      sheet.getRange(lastRow + 1, 1, rows.length, headers.length).setValues(rows);
     });
 
-    return ContentService.createTextOutput(JSON.stringify({
-      status: 'ok', count: entries.length
-    })).setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput(JSON.stringify({status:'ok', count: entries.length})).setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({
-      status: 'error', message: err.toString()
-    })).setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput(JSON.stringify({status:'error', message: err.toString()})).setMimeType(ContentService.MimeType.JSON);
   }
 }
 
 function doGet() {
-  return ContentService.createTextOutput(
-    'Register Auto Detail — Web App is live.'
-  );
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheets = ss.getSheets();
+    var allEntries = [];
+    var headers = ['Date','Dealership','VIN','Brand','Model','Year','Stock#','RO#','Department','Service','Price','Invoice','Notes','ID','Synced At'];
+
+    sheets.forEach(function(sheet) {
+      var name = sheet.getName();
+      if (name === 'Sheet1') return;
+      var data = sheet.getDataRange().getValues();
+      if (data.length < 3) return;
+
+      for (var i = 2; i < data.length; i++) {
+        var row = data[i];
+        allEntries.push({
+          id: row[13] || '',
+          date: row[0],
+          dealership: row[1],
+          vin: row[2],
+          brand: row[3],
+          model: row[4],
+          year: row[5],
+          stock: row[6],
+          ro: row[7],
+          department: row[8],
+          service: row[9],
+          price: row[10],
+          invoice: row[11],
+          notes: row[12],
+        });
+      }
+    });
+
+    return ContentService.createTextOutput(JSON.stringify({status:'ok', entries: allEntries})).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({status:'error', message: err.toString()})).setMimeType(ContentService.MimeType.JSON);
+  }
 }</pre
             >
           </div>
@@ -1789,7 +1824,7 @@ function doGet() {
         setDefaultDate()
         setDatePreset("week")
         updateCount()
-        renderDashboard()
+        fetchEntries().then(() => renderDashboard())
 
         // Secret tap to reveal prices
         document.getElementById("headerCount").addEventListener("click", () => {
@@ -1972,7 +2007,10 @@ function doGet() {
             el.classList.toggle("active", el.dataset.view === v)
           }
         })
-        if (v === "dashboard") renderDashboard()
+        if (v === "dashboard") {
+          fetchEntries()
+          renderDashboard()
+        }
         if (v === "dealers") populateDealers()
       }
 
@@ -2305,7 +2343,7 @@ function doGet() {
         e.target.reset()
         setDefaultDate()
         setDefaultDealership()
-        autoSync()
+        postEntry(entry)
       }
 
       // ─── Quick Wash ───
@@ -2351,8 +2389,9 @@ function doGet() {
           String(today.getMonth() + 1).padStart(2, "0") +
           "-" +
           String(today.getDate()).padStart(2, "0")
+        const batch = []
         for (let i = 0; i < count; i++) {
-          entries.push({
+          const e = {
             id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2),
             date: ds,
             dealership: dealer,
@@ -2368,13 +2407,15 @@ function doGet() {
             notes: "Quick wash",
             invoice: "",
             created: Date.now(),
-          })
+          }
+          entries.push(e)
+          batch.push(e)
         }
         save()
         closeWashModal()
         renderDashboard()
         showToast(count + " wash(es) added for " + dealer, "success")
-        autoSync()
+        syncToSheets(batch)
       }
 
       // ─── Delete Entry ───
@@ -2384,7 +2425,6 @@ function doGet() {
         save()
         renderDashboard()
         showToast("Entry deleted.", "info")
-        autoSync()
       }
 
       // ─── Filter Panel ───
@@ -2703,43 +2743,15 @@ function doGet() {
         showToast("CSV exported.", "success")
       }
 
-      // ─── Send to Google Sheets (full replace) ───
+      // ─── Google Sheets Sync (append-only + read) ───
       let syncing = false
-      let syncTimer
 
-      function autoSync() {
-        if (!cfg.sheetsUrl || syncing) return
-        clearTimeout(syncTimer)
-        syncTimer = setTimeout(sendToSheets, 1500)
-      }
-
-      async function sendToSheets() {
+      async function postEntry(e) {
         const url = cfg.sheetsUrl
-        if (!url || entries.length === 0) {
-          showToast("No entries to sync.", "info")
-          return
-        }
-        if (syncing) return
+        if (!url || syncing) return
         syncing = true
-
-        const payload = entries.map((e) => ({
-          date: e.date,
-          dealership: e.dealership,
-          vin: e.vin,
-          brand: e.brand,
-          model: e.model,
-          year: e.year,
-          stock: e.stock,
-          ro: e.ro,
-          department: e.department,
-          service: e.service,
-          price: e.price,
-          invoice: e.invoice || "",
-          notes: e.notes,
-        }))
-        const body = new URLSearchParams({ data: JSON.stringify({ entries: payload }) })
-
         try {
+          const body = new URLSearchParams({ data: JSON.stringify(e) })
           const res = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -2752,16 +2764,70 @@ function doGet() {
             ok = j.status === "ok"
           } catch {}
           if (!ok) throw new Error("Response: " + text.slice(0, 100))
-
-          showToast(
-            entries.length + " entr" + (entries.length === 1 ? "y" : "ies") + " synced to Google Sheets.",
-            "success",
-          )
         } catch (err) {
-          showToast("Sync failed. Re-deploy Apps Script with the latest code from Settings.", "error")
+          console.error("Sheet sync error:", err)
+        } finally {
+          syncing = false
+        }
+      }
+
+      async function syncToSheets(entriesArray) {
+        const url = cfg.sheetsUrl
+        if (!url || !entriesArray.length || syncing) return
+        syncing = true
+        try {
+          const body = new URLSearchParams({ data: JSON.stringify({ entries: entriesArray }) })
+          const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body,
+          })
+          const text = await res.text()
+          let ok = false
+          try {
+            const j = JSON.parse(text)
+            ok = j.status === "ok"
+          } catch {}
+          if (!ok) throw new Error("Response: " + text.slice(0, 100))
+          showToast(entriesArray.length + " entr" + (entriesArray.length === 1 ? "y" : "ies") + " synced.", "success")
+        } catch (err) {
+          showToast("Sync failed. Check Settings for Sheets URL.", "error")
           console.error("Sheets send error:", err)
         } finally {
           syncing = false
+        }
+      }
+
+      async function fetchEntries() {
+        const url = cfg.sheetsUrl
+        if (!url) return
+        try {
+          const res = await fetch(url + "?mode=fetch")
+          if (!res.ok) return
+          const text = await res.text()
+          let data
+          try {
+            data = JSON.parse(text)
+          } catch {
+            return
+          }
+          if (data.status !== "ok" || !data.entries) return
+          const fetched = data.entries.map((e) => ({
+            ...e,
+            id:
+              e.id || crypto.randomUUID
+                ? crypto.randomUUID()
+                : Date.now().toString(36) + Math.random().toString(36).slice(2),
+            price: Number(e.price) || 0,
+          }))
+          // Merge: keep local entries whose IDs aren't in the sheet (offline additions)
+          const sheetIds = new Set(fetched.map((e) => e.id))
+          const localOnly = entries.filter((e) => !sheetIds.has(e.id))
+          entries = [...fetched, ...localOnly]
+          save()
+          renderDashboard()
+        } catch (err) {
+          console.error("Fetch from sheets error:", err)
         }
       }
 
