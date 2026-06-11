@@ -2352,9 +2352,7 @@ function doGet(e) {
       };
 
       // ── Bootstrap Sheets URL (fallback for new users) ──
-      const FALLBACK_SHEETS_URL =
-        "https://script.google.com/macros/s/AKfycbxm99LDFYaFLTKjMUeczjtdEHbSFg-nNdGXJwA5r8HhzWGg5ouFTJgj6O94UasePMn9ow/exec";
-
+      const FALLBACK_SHEETS_URL = "";
       // ── State ──
       let entries = [];
       let cfg = { sheetsUrl: "" };
@@ -3679,7 +3677,15 @@ function doGet(e) {
         if (!url) return;
         try {
           const res = await fetch(url + "?mode=fetch");
-          if (!res.ok) return;
+          if (!res.ok) {
+            showToast(
+              "Sheet returned error " +
+                res.status +
+                ". Check the URL in Settings.",
+              "error",
+            );
+            return;
+          }
           const text = await res.text();
           let data;
           try {
@@ -3687,7 +3693,7 @@ function doGet(e) {
           } catch {
             return;
           }
-          if (data.status !== "ok" || !data.entries) return;
+          if (data.status !== "ok") return;
           const fetched = data.entries.map((e) => ({
             ...e,
             id:
@@ -3731,6 +3737,10 @@ function doGet(e) {
           renderDashboard();
         } catch (err) {
           console.error("Fetch from sheets error:", err);
+          showToast(
+            "Could not reach sheet. Check the URL in Settings.",
+            "error",
+          );
         }
       }
 
