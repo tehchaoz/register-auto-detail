@@ -1590,7 +1590,7 @@
               "
             >
 function jsonp(data) {
-  var html = '<script>window.top.postMessage(' + JSON.stringify(data) + ', "*");<' + '/script>';
+  var html = '&lt;script&gt;window.top.postMessage(' + JSON.stringify(data) + ', "*");<' + '/script>';
   return HtmlService.createHtmlOutput(html).setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
@@ -3698,7 +3698,9 @@ function getSheet() {
         try {
           const raw = localStorage.getItem("rad_pending");
           pendingQueue = raw ? JSON.parse(raw) : [];
-        } catch { pendingQueue = []; }
+        } catch {
+          pendingQueue = [];
+        }
         updatePendingBadge();
       }
 
@@ -3766,7 +3768,9 @@ function getSheet() {
         for (const item of batch) {
           try {
             await callAppsScript(
-              item.isUpdate ? { action: "updateEntry", entry: item.entry } : item.entry,
+              item.isUpdate
+                ? { action: "updateEntry", entry: item.entry }
+                : item.entry,
               true,
             );
             ok++;
@@ -3785,10 +3789,7 @@ function getSheet() {
       async function syncPinToSheet(hash) {
         if (!cfg.sheetsUrl) return;
         try {
-          await callAppsScript(
-            { action: "setPin", ownerPin: hash },
-            true,
-          );
+          await callAppsScript({ action: "setPin", ownerPin: hash }, true);
         } catch (err) {
           console.error("PIN sync error:", err);
         }
@@ -3826,12 +3827,17 @@ function getSheet() {
           if (data.sheetsUrl && data.sheetsUrl !== cfg.sheetsUrl) {
             cfg.sheetsUrl = data.sheetsUrl;
             localStorage.setItem("rad_cfg", JSON.stringify(cfg));
-            document.getElementById("sheetsUrlStatus").textContent = "Connected";
+            document.getElementById("sheetsUrlStatus").textContent =
+              "Connected";
             document.getElementById("sheetsUrlSettings").value = data.sheetsUrl;
             fetchEntries();
             return;
           }
-          if (data.dealers && Array.isArray(data.dealers) && data.dealers.length) {
+          if (
+            data.dealers &&
+            Array.isArray(data.dealers) &&
+            data.dealers.length
+          ) {
             dealers = data.dealers.filter(
               (d) => d !== "Mobile Detail" && d !== "CycleSprings",
             );
