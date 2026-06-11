@@ -1594,6 +1594,12 @@ function doPost(e) {
       return ContentService.createTextOutput(JSON.stringify({status:'ok'})).setMimeType(ContentService.MimeType.JSON);
     }
 
+    // Handle sheets URL propagation
+    if (d.action === 'setSheetsUrl' && d.sheetsUrl) {
+      PropertiesService.getScriptProperties().setProperty('sheetsUrl', d.sheetsUrl);
+      return ContentService.createTextOutput(JSON.stringify({status:'ok'})).setMimeType(ContentService.MimeType.JSON);
+    }
+
     var entries = d.entries || d;
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     if (!Array.isArray(entries)) entries = [entries];
@@ -1648,8 +1654,9 @@ function doGet(e) {
     var allEntries = [];
     var headers = ['Date','Dealership','VIN','Brand','Model','Year','Stock#','RO#','Department','Service','Price','Invoice','Notes','ID','Synced At'];
 
-    // Read shared owner PIN from script properties
+    // Read shared owner PIN and sheets URL from script properties
     var ownerPin = PropertiesService.getScriptProperties().getProperty('ownerPin') || '';
+    var sheetsUrl = PropertiesService.getScriptProperties().getProperty('sheetsUrl') || '';
 
     sheets.forEach(function(sheet) {
       var name = sheet.getName();
@@ -1678,7 +1685,7 @@ function doGet(e) {
       }
     });
 
-    return ContentService.createTextOutput(JSON.stringify({status:'ok', entries: allEntries, ownerPin: ownerPin})).setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput(JSON.stringify({status:'ok', entries: allEntries, ownerPin: ownerPin, sheetsUrl: sheetsUrl})).setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
     return ContentService.createTextOutput(JSON.stringify({status:'error', message: err.toString()})).setMimeType(ContentService.MimeType.JSON);
   }
@@ -2281,6 +2288,10 @@ function doGet(e) {
         ],
       };
 
+      // ── Bootstrap Sheets URL (fallback for new users) ──
+      const FALLBACK_SHEETS_URL =
+        "https://script.google.com/macros/s/AKfycbxm99LDFYaFLTKjMUeczjtdEHbSFg-nNdGXJwA5r8HhzWGg5ouFTJgj6O94UasePMn9ow/exec";
+
       // ── State ──
       let entries = [];
       let cfg = { sheetsUrl: "" };
@@ -2396,6 +2407,10 @@ function doGet(e) {
           dealers = JSON.parse(localStorage.getItem("rad_dealers")) || [];
         } catch {
           dealers = [];
+        }
+        if (!cfg.sheetsUrl) {
+          cfg.sheetsUrl = FALLBACK_SHEETS_URL;
+          localStorage.setItem("rad_cfg", JSON.stringify(cfg));
         }
         const el = document.getElementById("sheetsUrlSettings");
         if (el) el.value = cfg.sheetsUrl || "";
@@ -2545,18 +2560,32 @@ function doGet(e) {
 
       function saveSheetsUrl() {
         const el = document.getElementById("sheetsUrlSettings");
-        cfg.sheetsUrl = el.value.trim();
+        const oldUrl = cfg.sheetsUrl;
+        const newUrl = el.value.trim();
+        if (!newUrl) return;
+        // Save new URL locally
+        cfg.sheetsUrl = newUrl;
         localStorage.setItem("rad_cfg", JSON.stringify(cfg));
-        document.getElementById("sheetsUrlStatus").textContent = cfg.sheetsUrl
-          ? "Connected"
-          : "Not connected";
+        document.getElementById("sheetsUrlStatus").textContent = "Connected";
         hideSheetsUrlEditor();
-        if (cfg.sheetsUrl) {
-          syncPinToSheet(
-            cfg.ownerPin ||
-              "144a30d4b2dfbdba0b068dec7ed037872425ef00c59c56082c45c218e9c8f912",
-          );
-          fetchEntries();
+        // Sync PIN to new sheet
+        syncPinToSheet(
+          cfg.ownerPin ||
+            "144a30d4b2dfbdba0b068dec7ed037872425ef00c59c56082c45c218e9c8f912",
+        );
+        fetchEntries();
+        // Propagate new URL via old sheet so other instances discover it
+        if (oldUrl && oldUrl !== newUrl) {
+          fetch(oldUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+              data: JSON.stringify({
+                action: "setSheetsUrl",
+                sheetsUrl: newUrl,
+              }),
+            }),
+          }).catch(() => {});
         }
       }
 
@@ -3580,6 +3609,17 @@ function doGet(e) {
           if (data.ownerPin) {
             cfg.ownerPin = data.ownerPin;
             localStorage.setItem("rad_cfg", JSON.stringify(cfg));
+          }
+          // If sheet reports a different canonical URL, switch to it
+          if (data.sheetsUrl && data.sheetsUrl !== cfg.sheetsUrl) {
+            cfg.sheetsUrl = data.sheetsUrl;
+            localStorage.setItem("rad_cfg", JSON.stringify(cfg));
+            document.getElementById("sheetsUrlStatus").textContent =
+              "Connected";
+            document.getElementById("sheetsUrlSettings").value = data.sheetsUrl;
+            // Re-fetch from the new URL
+            fetchEntries();
+            return;
           }
           // Merge: keep local entries whose IDs aren't in the sheet (offline additions)
           const sheetIds = new Set(fetched.map((e) => e.id));
