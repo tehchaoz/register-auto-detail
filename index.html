@@ -2355,7 +2355,7 @@ function getSheet() {
 
       // ── Bootstrap Sheets URL (fallback for new users) ──
       const FALLBACK_SHEETS_URL =
-        "https://script.google.com/macros/s/AKfycbzIpOkTH_-3usUSiKz5nYOQH_uBrW8msHDx2F9QVN90Y_81DokkUcfbF_lII_2dHuMe/exec";
+        "https://script.google.com/macros/s/AKfycbz-PukcuiSscj5k_dxk5GWg3TO4v5-KmT0KFhDBr5xFPHVkMtppgX3gKTcP9J4fa1AS/exec";
       // ── State ──
       let entries = [];
       let cfg = { sheetsUrl: "" };
@@ -2703,7 +2703,7 @@ function getSheet() {
         document.getElementById("sheetsUrlDisplay").style.display = "block";
       }
 
-      function saveSheetsUrl() {
+      async function saveSheetsUrl() {
         const el = document.getElementById("sheetsUrlSettings");
         const newUrl = el.value.trim();
         if (!newUrl) return;
@@ -2711,14 +2711,20 @@ function getSheet() {
         localStorage.setItem("rad_cfg", JSON.stringify(cfg));
         document.getElementById("sheetsUrlStatus").textContent = "Connected";
         hideSheetsUrlEditor();
-        syncPinToSheet(
+        // Store URL on deployment so other instances discover it
+        try {
+          await callAppsScript({
+            action: "setSheetsUrl",
+            sheetsUrl: newUrl,
+          });
+        } catch (err) {
+          console.warn("Could not store URL on deployment:", err);
+        }
+        await syncPinToSheet(
           cfg.ownerPin ||
             "144a30d4b2dfbdba0b068dec7ed037872425ef00c59c56082c45c218e9c8f912",
         );
-        // Store URL on deployment so other instances discover it
-        callAppsScript({ action: "setSheetsUrl", sheetsUrl: newUrl }).catch(
-          () => {},
-        );
+        showToast("URL saved and synced to sheet.", "success");
         fetchEntries();
       }
 
