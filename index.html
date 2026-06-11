@@ -2395,6 +2395,16 @@ function doGet(e) {
         const ownerSession = sessionStorage.getItem("rad_owner") === "true";
         setOwnerState(ownerSession);
 
+        // Migrate any ISO date strings in localStorage entries to YYYY-MM-DD
+        let migrated = false;
+        entries.forEach((e) => {
+          if (e.date && e.date.includes("T")) {
+            e.date = e.date.split("T")[0];
+            migrated = true;
+          }
+        });
+        if (migrated) save();
+
         const DEF_PIN =
           "144a30d4b2dfbdba0b068dec7ed037872425ef00c59c56082c45c218e9c8f912";
         cfg.ownerPin = DEF_PIN;
@@ -3345,7 +3355,7 @@ function doGet(e) {
       // ─── Week Helper ───
       function getWeek(dateStr) {
         if (!dateStr) return { year: 0, week: 0, label: "No Date" };
-        const d = new Date(dateStr + "T12:00:00");
+        const d = new Date(dateStr.split("T")[0] + "T12:00:00");
         if (isNaN(d.getTime())) return { year: 0, week: 0, label: "No Date" };
         const y = d.getFullYear();
         const start = new Date(y, 0, 1);
