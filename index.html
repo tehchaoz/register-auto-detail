@@ -1747,6 +1747,9 @@ function doGet(e) {
   }
 }
 
+// doPost forwards to doGet for backward compatibility
+function doPost(e) { return doGet(e); }
+
 var SHEET_ID = '1Y7R0JdwKP9VbjmXVXrJw4pfshEcYiJPJla2bWel6F0I';
 function getSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -2352,7 +2355,8 @@ function getSheet() {
       };
 
       // ── Bootstrap Sheets URL (fallback for new users) ──
-      const FALLBACK_SHEETS_URL = "";
+      const FALLBACK_SHEETS_URL =
+        "https://script.google.com/macros/s/AKfycbzIpOkTH_-3usUSiKz5nYOQH_uBrW8msHDx2F9QVN90Y_81DokkUcfbF_lII_2dHuMe/exec";
       // ── State ──
       let entries = [];
       let cfg = { sheetsUrl: "" };
@@ -2734,7 +2738,12 @@ function getSheet() {
             "144a30d4b2dfbdba0b068dec7ed037872425ef00c59c56082c45c218e9c8f912",
         );
         fetchEntries();
-        // Propagate new URL via old sheet so other instances discover it
+        // Store URL on current deployment so other instances discover it
+        callAppsScript(
+          { action: "setSheetsUrl", sheetsUrl: newUrl },
+          newUrl,
+        ).catch(() => {});
+        // Also propagate via old URL for backward compatibility
         if (oldUrl && oldUrl !== newUrl) {
           callAppsScript(
             { action: "setSheetsUrl", sheetsUrl: newUrl },
