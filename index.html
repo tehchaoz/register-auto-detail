@@ -3737,8 +3737,12 @@ function doGet(e) {
           renderDashboard();
         } catch (err) {
           console.error("Fetch from sheets error:", err);
+          cfg.sheetsUrl = "";
+          localStorage.setItem("rad_cfg", JSON.stringify(cfg));
+          document.getElementById("sheetsUrlStatus").textContent =
+            "Not connected";
           showToast(
-            "Could not reach sheet. Check the URL in Settings.",
+            "Sheet URL is unreachable. Paste a new URL in Settings.",
             "error",
           );
         }
