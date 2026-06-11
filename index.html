@@ -3150,13 +3150,7 @@ function doGet(e) {
         renderDashboard();
         showToast(count + " wash(es) added for " + dealer, "success");
         if (isOwner) {
-          syncToSheets(batch);
-        } else {
-          showToast(
-            count +
-              " wash(es) saved locally. Owner login required to sync to Sheets.",
-            "info",
-          );
+          syncToSheets([e]);
         }
       }
 
@@ -3270,7 +3264,9 @@ function doGet(e) {
 
       // ─── Week Helper ───
       function getWeek(dateStr) {
+        if (!dateStr) return { year: 0, week: 0, label: "No Date" };
         const d = new Date(dateStr + "T12:00:00");
+        if (isNaN(d.getTime())) return { year: 0, week: 0, label: "No Date" };
         const y = d.getFullYear();
         const start = new Date(y, 0, 1);
         const days = Math.floor((d - start) / 86400000);
