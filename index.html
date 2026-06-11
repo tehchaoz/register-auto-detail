@@ -350,24 +350,6 @@
         font-size: 0.85rem;
         color: var(--text-muted);
       }
-      .price-mask {
-        display: inline-block;
-        transition:
-          filter 0.3s,
-          opacity 0.3s;
-      }
-      body.prices-hidden .price-mask {
-        filter: blur(6px);
-        opacity: 0.5;
-        user-select: none;
-        cursor: pointer;
-      }
-      body.prices-hidden .price-mask {
-        filter: blur(6px);
-        opacity: 0.5;
-        user-select: none;
-        cursor: pointer;
-      }
 
       /* ── Buttons ── */
       .btn {
@@ -1306,6 +1288,22 @@
                 ></textarea>
               </div>
             </div>
+            <div
+              style="
+                margin: 16px 0 8px;
+                border-top: 1px solid var(--border);
+                padding-top: 16px;
+              "
+            >
+              <button
+                type="button"
+                class="btn btn-secondary"
+                onclick="openWashModal()"
+                style="width: 100%"
+              >
+                + Add Service Washes
+              </button>
+            </div>
             <div class="submit-bar">
               <button type="submit" class="btn btn-primary">
                 Submit Entry
@@ -1589,6 +1587,13 @@ function doPost(e) {
   try {
     var raw = e.parameter.data || (e.postData ? e.postData.contents : '');
     var d = JSON.parse(raw);
+
+    // Handle PIN sync
+    if (d.action === 'setPin' && d.ownerPin) {
+      PropertiesService.getScriptProperties().setProperty('ownerPin', d.ownerPin);
+      return ContentService.createTextOutput(JSON.stringify({status:'ok'})).setMimeType(ContentService.MimeType.JSON);
+    }
+
     var entries = d.entries || d;
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     if (!Array.isArray(entries)) entries = [entries];
@@ -1636,12 +1641,15 @@ function doPost(e) {
   }
 }
 
-function doGet() {
+function doGet(e) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheets = ss.getSheets();
     var allEntries = [];
     var headers = ['Date','Dealership','VIN','Brand','Model','Year','Stock#','RO#','Department','Service','Price','Invoice','Notes','ID','Synced At'];
+
+    // Read shared owner PIN from script properties
+    var ownerPin = PropertiesService.getScriptProperties().getProperty('ownerPin') || '';
 
     sheets.forEach(function(sheet) {
       var name = sheet.getName();
@@ -1670,11 +1678,13 @@ function doGet() {
       }
     });
 
-    return ContentService.createTextOutput(JSON.stringify({status:'ok', entries: allEntries})).setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput(JSON.stringify({status:'ok', entries: allEntries, ownerPin: ownerPin})).setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
     return ContentService.createTextOutput(JSON.stringify({status:'error', message: err.toString()})).setMimeType(ContentService.MimeType.JSON);
   }
-}</pre
+}
+
+</pre
             >
           </div>
         </div>
@@ -1761,56 +1771,6 @@ function doGet() {
       </div>
     </section>
 
-    <!-- ═══ PIN SETUP MODAL (first launch) ═══ -->
-    <div
-      class="modal-overlay"
-      id="pinSetupModal"
-      onclick="if(event.target===this)return"
-    >
-      <div class="modal">
-        <div class="modal-title">Set Owner PIN</div>
-        <p
-          style="
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-bottom: 12px;
-          "
-        >
-          This PIN grants access to Dashboard, Dealers, Settings, and Sheets
-          sync. Share with trusted managers only.
-        </p>
-        <div class="form-group">
-          <label for="pinSetupInput">New PIN (4-15 digits)</label>
-          <input
-            type="password"
-            id="pinSetupInput"
-            inputmode="numeric"
-            pattern="[0-9]*"
-            maxlength="15"
-            placeholder="Enter PIN"
-            autocomplete="off"
-          />
-        </div>
-        <div class="form-group">
-          <label for="pinSetupConfirm">Confirm PIN</label>
-          <input
-            type="password"
-            id="pinSetupConfirm"
-            inputmode="numeric"
-            pattern="[0-9]*"
-            maxlength="15"
-            placeholder="Confirm PIN"
-            autocomplete="off"
-          />
-        </div>
-        <div class="btn-group">
-          <button class="btn btn-sm btn-primary" onclick="setupPin()">
-            Set PIN
-          </button>
-        </div>
-      </div>
-    </div>
-
     <!-- ═══ PIN ENTRY MODAL (unlock) ═══ -->
     <div
       class="modal-overlay"
@@ -1830,6 +1790,7 @@ function doGet() {
             placeholder="PIN"
             autocomplete="off"
           />
+          <div class="field-hint">Default PIN: 122824</div>
         </div>
         <div class="btn-group">
           <button class="btn btn-sm btn-primary" onclick="verifyPin()">
@@ -2325,8 +2286,6 @@ function doGet() {
       let cfg = { sheetsUrl: "" };
       let dealers = [];
       let editId = null;
-      let tapCount = 0;
-      let tapTimer = null;
       let selectedFilterDealers = [];
       let isOwner = false;
 
@@ -2354,9 +2313,14 @@ function doGet() {
         const ownerSession = sessionStorage.getItem("rad_owner") === "true";
         setOwnerState(ownerSession);
 
-        // First launch — PIN setup
+        // Default PIN (shared across all instances)
+        const DEFAULT_PIN_HASH =
+          "144a30d4b2dfbdba0b068dec7ed037872425ef00c59c56082c45c218e9c8f912";
         if (!cfg.ownerPin) {
-          document.getElementById("pinSetupModal").classList.add("open");
+          cfg.ownerPin = DEFAULT_PIN_HASH;
+          localStorage.setItem("rad_cfg", JSON.stringify(cfg));
+          // Sync default PIN to sheet if URL is configured
+          if (cfg.sheetsUrl) syncPinToSheet(DEFAULT_PIN_HASH);
         }
 
         // Seed CycleSprings custom pricing example
@@ -2380,21 +2344,6 @@ function doGet() {
         setDatePreset("week");
         updateCount();
         fetchEntries().then(() => renderDashboard());
-
-        // Secret tap to reveal prices
-        document.getElementById("headerCount").addEventListener("click", () => {
-          tapCount++;
-          clearTimeout(tapTimer);
-          tapTimer = setTimeout(() => {
-            tapCount = 0;
-          }, 2000);
-          if (tapCount >= 5) {
-            tapCount = 0;
-            togglePrices();
-          }
-        });
-
-        applyPriceMask();
 
         // keyboard shortcut: Ctrl+Enter to submit
         document
@@ -2429,16 +2378,6 @@ function doGet() {
         document.getElementById("pinInput").addEventListener("keydown", (e) => {
           if (e.key === "Enter") verifyPin();
         });
-        document
-          .getElementById("pinSetupInput")
-          .addEventListener("keydown", (e) => {
-            if (e.key === "Enter") setupPin();
-          });
-        document
-          .getElementById("pinSetupConfirm")
-          .addEventListener("keydown", (e) => {
-            if (e.key === "Enter") setupPin();
-          });
       }
 
       // ─── LocalStorage ───
@@ -2473,18 +2412,6 @@ function doGet() {
         updateCount();
       }
 
-      let pricesRevealed = false;
-
-      function applyPriceMask() {
-        document.body.classList.toggle("prices-hidden", !pricesRevealed);
-      }
-
-      function togglePrices() {
-        pricesRevealed = !pricesRevealed;
-        applyPriceMask();
-        renderDashboard();
-      }
-
       // ─── PIN & Lock ───
       function handleLockClick() {
         if (isOwner) {
@@ -2507,24 +2434,6 @@ function doGet() {
 
       function closePinModal() {
         document.getElementById("pinModal").classList.remove("open");
-      }
-
-      async function setupPin() {
-        const pin = document.getElementById("pinSetupInput").value;
-        const confirm = document.getElementById("pinSetupConfirm").value;
-        if (!pin || pin.length < 4 || pin.length > 15 || !/^\d+$/.test(pin)) {
-          showToast("PIN must be 4-15 digits.", "error");
-          return;
-        }
-        if (pin !== confirm) {
-          showToast("PINs do not match.", "error");
-          return;
-        }
-        cfg.ownerPin = await hashPin(pin);
-        localStorage.setItem("rad_cfg", JSON.stringify(cfg));
-        document.getElementById("pinSetupModal").classList.remove("open");
-        setOwnerState(true);
-        showToast("Owner PIN set. You are now logged in as owner.", "success");
       }
 
       async function verifyPin() {
@@ -3366,9 +3275,9 @@ function doGet() {
 
         document.getElementById("statsBar").innerHTML = `
         <div class="stat"><div class="stat-val">${filtered.length}</div><div class="stat-lbl">Total Entries</div></div>
-        <div class="stat"><div class="stat-val"><span class="price-mask">$${totalRev.toLocaleString()}</span></div><div class="stat-lbl">Total Revenue</div></div>
+        <div class="stat"><div class="stat-val">$${totalRev.toLocaleString()}</div><div class="stat-lbl">Total Revenue</div></div>
         <div class="stat"><div class="stat-val">${todayEntries.length}</div><div class="stat-lbl">Today</div></div>
-        <div class="stat"><div class="stat-val"><span class="price-mask">$${todayRev.toLocaleString()}</span></div><div class="stat-lbl">Today Rev</div></div>
+        <div class="stat"><div class="stat-val">$${todayRev.toLocaleString()}</div><div class="stat-lbl">Today Rev</div></div>
       `;
 
         const container = document.getElementById("dashboardContent");
@@ -3410,7 +3319,7 @@ function doGet() {
             <div class="dealership-group">
               <div class="dealership-header">
                 <span class="dealership-name">${d}</span>
-                <span class="dealership-count">${rows.length} entries · <span class="price-mask">$${dealerRev.toLocaleString()}</span></span>
+                <span class="dealership-count">${rows.length} entries · $${dealerRev.toLocaleString()}</span>
               </div>
               <div class="table-wrap">
                 <table>
@@ -3444,7 +3353,7 @@ function doGet() {
                         <td>${r.ro || "—"}</td>
                         <td>${r.department || "—"}</td>
                         <td class="always-show"><span class="svc-badge">${r.service}</span></td>
-                        <td class="always-show"><span class="price-cell"><span class="price-mask">$${r.price}</span></span></td>
+                        <td class="always-show"><span class="price-cell">$${r.price}</span></td>
                         <td>${r.invoice || "—"}</td>
                         <td style="display:flex;gap:4px">
                           <button class="btn btn-sm btn-secondary" onclick="editEntry('${r.id}')" title="Edit">✎</button>
@@ -3468,7 +3377,7 @@ function doGet() {
                 ${g.label}
                 <span class="week-range">(${dealerNames.length} dealer${dealerNames.length !== 1 ? "s" : ""})</span>
               </div>
-              <div class="week-total"><span class="price-mask">$${weekTotal.toLocaleString()}</span></div>
+              <div class="week-total">$${weekTotal.toLocaleString()}</div>
             </div>
             ${dealerHtml}
           </div>
@@ -3618,6 +3527,23 @@ function doGet() {
         }
       }
 
+      async function syncPinToSheet(hash) {
+        const url = cfg.sheetsUrl;
+        if (!url) return;
+        try {
+          const body = new URLSearchParams({
+            data: JSON.stringify({ action: "setPin", ownerPin: hash }),
+          });
+          await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body,
+          });
+        } catch (err) {
+          console.error("PIN sync to sheet error:", err);
+        }
+      }
+
       async function fetchEntries() {
         const url = cfg.sheetsUrl;
         if (!url) return;
@@ -3640,6 +3566,11 @@ function doGet() {
                 : Date.now().toString(36) + Math.random().toString(36).slice(2),
             price: Number(e.price) || 0,
           }));
+          // Sync owner PIN from sheet (shared across all instances)
+          if (data.ownerPin) {
+            cfg.ownerPin = data.ownerPin;
+            localStorage.setItem("rad_cfg", JSON.stringify(cfg));
+          }
           // Merge: keep local entries whose IDs aren't in the sheet (offline additions)
           const sheetIds = new Set(fetched.map((e) => e.id));
           const localOnly = entries.filter((e) => !sheetIds.has(e.id));
