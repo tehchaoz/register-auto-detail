@@ -3062,14 +3062,7 @@ function doGet(e) {
         e.target.reset();
         setDefaultDate();
         setDefaultDealership();
-        if (isOwner) {
-          postEntry(entry);
-        } else {
-          showToast(
-            "Saved locally. Owner login required to sync to Sheets.",
-            "info",
-          );
-        }
+        postEntry(entry);
       }
 
       // ─── Quick Wash ───
@@ -3149,9 +3142,7 @@ function doGet(e) {
         closeWashModal();
         renderDashboard();
         showToast(count + " wash(es) added for " + dealer, "success");
-        if (isOwner) {
-          syncToSheets([e]);
-        }
+        syncToSheets([e]);
       }
 
       // ─── Delete Entry ───
