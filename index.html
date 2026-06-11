@@ -2381,7 +2381,7 @@ function doGet(e) {
       function init() {
         load();
 
-        // Preload default dealerships if none exist
+        // Preload default dealerships if none exist (local fallback only)
         if (!dealers.length) {
           dealers.push(
             "Ed Morse Cadillac - Tampa",
@@ -2632,6 +2632,7 @@ function doGet(e) {
         const oldUrl = cfg.sheetsUrl;
         const newUrl = el.value.trim();
         if (!newUrl) return;
+        localStorage.removeItem("rad_sheet_broken");
         // Save new URL locally
         cfg.sheetsUrl = newUrl;
         localStorage.setItem("rad_cfg", JSON.stringify(cfg));
@@ -3121,6 +3122,7 @@ function doGet(e) {
           const i = entries.findIndex((x) => x.id === editId);
           if (i !== -1)
             entries[i] = { ...entry, id: editId, created: entries[i].created };
+          entry.id = editId;
           var wasEdit = true;
           editId = null;
         } else {
@@ -3675,6 +3677,7 @@ function doGet(e) {
       async function fetchEntries() {
         const url = cfg.sheetsUrl;
         if (!url) return;
+        if (localStorage.getItem("rad_sheet_broken") === "1") return;
         try {
           const res = await fetch(url + "?mode=fetch");
           if (!res.ok) {
@@ -3697,9 +3700,11 @@ function doGet(e) {
           const fetched = data.entries.map((e) => ({
             ...e,
             id:
-              e.id || crypto.randomUUID
+              e.id ||
+              (crypto.randomUUID
                 ? crypto.randomUUID()
-                : Date.now().toString(36) + Math.random().toString(36).slice(2),
+                : Date.now().toString(36) +
+                  Math.random().toString(36).slice(2)),
             price: Number(e.price) || 0,
           }));
           // Sync owner PIN from sheet (shared across all instances)
@@ -3719,13 +3724,14 @@ function doGet(e) {
             return;
           }
           // Sync dealers from sheet (shared across all instances)
-          if (data.dealers && Array.isArray(data.dealers)) {
-            const sheetDealers = data.dealers.filter(
+          if (
+            data.dealers &&
+            Array.isArray(data.dealers) &&
+            data.dealers.length
+          ) {
+            dealers = data.dealers.filter(
               (d) => d !== "Mobile Detail" && d !== "CycleSprings",
             );
-            // Merge: keep Mobile Detail and CycleSprings, use sheet's list for the rest
-            const merged = ["Mobile Detail", "CycleSprings", ...sheetDealers];
-            dealers = sheetDealers;
             save();
             populateDealers();
           }
@@ -3737,12 +3743,11 @@ function doGet(e) {
           renderDashboard();
         } catch (err) {
           console.error("Fetch from sheets error:", err);
-          cfg.sheetsUrl = "";
-          localStorage.setItem("rad_cfg", JSON.stringify(cfg));
+          localStorage.setItem("rad_sheet_broken", "1");
           document.getElementById("sheetsUrlStatus").textContent =
             "Not connected";
           showToast(
-            "Sheet URL is unreachable. Paste a new URL in Settings.",
+            "Sheet URL is unreachable. Fix the URL in Settings.",
             "error",
           );
         }
