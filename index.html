@@ -1260,6 +1260,7 @@
                   <option value="">Select...</option>
                   <option value="New Car">New Car</option>
                   <option value="Used Car">Used Car</option>
+                  <option value="Service">Service</option>
                 </select>
               </div>
               <div class="form-group">
@@ -1494,6 +1495,9 @@
             </div>
           </div>
           <div class="btn-group mt-16">
+            <button class="btn btn-sm btn-primary" onclick="syncAllEntries()">
+              Sync All to Sheets
+            </button>
             <button class="btn btn-sm btn-danger" onclick="clearAll()">
               Clear All Data
             </button>
@@ -1600,6 +1604,64 @@ function doPost(e) {
       return ContentService.createTextOutput(JSON.stringify({status:'ok'})).setMimeType(ContentService.MimeType.JSON);
     }
 
+    // Handle update entry (edit) — find row by ID and replace in-place
+    if (d.action === 'updateEntry' && d.entry) {
+      var r = d.entry;
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var sheet = ss.getSheetByName(r.dealership || 'Unknown');
+      if (!sheet) return ContentService.createTextOutput(JSON.stringify({status:'error', message:'Sheet not found'})).setMimeType(ContentService.MimeType.JSON);
+      var data = sheet.getDataRange().getValues();
+      for (var i = 2; i < data.length; i++) {
+        if (data[i][13] === r.id) {
+          var headers = ['Date','Dealership','VIN','Brand','Model','Year','Stock#','RO#','Department','Service','Price','Invoice','Notes','ID','Synced At'];
+          var row = [r.date, r.dealership, r.vin, r.brand, r.model, r.year, r.stock, r.ro, r.department, r.service, r.price, r.invoice || '', r.notes, r.id || '', new Date().toISOString()];
+          sheet.getRange(i + 1, 1, 1, headers.length).setValues([row]);
+          return ContentService.createTextOutput(JSON.stringify({status:'ok', action:'updated'})).setMimeType(ContentService.MimeType.JSON);
+        }
+      }
+      // ID not found — append instead
+      return ContentService.createTextOutput(JSON.stringify({status:'error', message:'Entry ID not found for update'})).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // Handle delete entry — find row by ID and remove
+    if (d.action === 'deleteEntry' && d.id) {
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var sheets = ss.getSheets();
+      for (var si = 0; si < sheets.length; si++) {
+        var s = sheets[si];
+        if (s.getName() === 'Sheet1') continue;
+        var data = s.getDataRange().getValues();
+        for (var ri = 2; ri < data.length; ri++) {
+          if (data[ri][13] === d.id) {
+            s.deleteRow(ri + 1);
+            return ContentService.createTextOutput(JSON.stringify({status:'ok', action:'deleted'})).setMimeType(ContentService.MimeType.JSON);
+          }
+        }
+      }
+      return ContentService.createTextOutput(JSON.stringify({status:'error', message:'Entry ID not found for delete'})).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // Handle clear all — delete all data rows (keep headers)
+    if (d.action === 'clearAll') {
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var sheets = ss.getSheets();
+      for (var si = 0; si < sheets.length; si++) {
+        var s = sheets[si];
+        if (s.getName() === 'Sheet1') continue;
+        var lr = s.getLastRow();
+        if (lr > 2) {
+          s.deleteRows(3, lr - 2);
+        }
+      }
+      return ContentService.createTextOutput(JSON.stringify({status:'ok', action:'cleared'})).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // Handle dealership sync
+    if (d.action === 'setDealers' && d.dealers) {
+      PropertiesService.getScriptProperties().setProperty('dealers', JSON.stringify(d.dealers));
+      return ContentService.createTextOutput(JSON.stringify({status:'ok'})).setMimeType(ContentService.MimeType.JSON);
+    }
+
     var entries = d.entries || d;
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     if (!Array.isArray(entries)) entries = [entries];
@@ -1654,9 +1716,11 @@ function doGet(e) {
     var allEntries = [];
     var headers = ['Date','Dealership','VIN','Brand','Model','Year','Stock#','RO#','Department','Service','Price','Invoice','Notes','ID','Synced At'];
 
-    // Read shared owner PIN and sheets URL from script properties
+    // Read shared owner PIN, sheets URL, and dealers from script properties
     var ownerPin = PropertiesService.getScriptProperties().getProperty('ownerPin') || '';
     var sheetsUrl = PropertiesService.getScriptProperties().getProperty('sheetsUrl') || '';
+    var dealersStr = PropertiesService.getScriptProperties().getProperty('dealers') || '';
+    var dealers = dealersStr ? JSON.parse(dealersStr) : [];
 
     sheets.forEach(function(sheet) {
       var name = sheet.getName();
@@ -1685,7 +1749,7 @@ function doGet(e) {
       }
     });
 
-    return ContentService.createTextOutput(JSON.stringify({status:'ok', entries: allEntries, ownerPin: ownerPin, sheetsUrl: sheetsUrl})).setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput(JSON.stringify({status:'ok', entries: allEntries, ownerPin: ownerPin, sheetsUrl: sheetsUrl, dealers: dealers})).setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
     return ContentService.createTextOutput(JSON.stringify({status:'error', message: err.toString()})).setMimeType(ContentService.MimeType.JSON);
   }
@@ -1797,7 +1861,6 @@ function doGet(e) {
             placeholder="PIN"
             autocomplete="off"
           />
-          <div class="field-hint">Default PIN: 122824</div>
         </div>
         <div class="btn-group">
           <button class="btn btn-sm btn-primary" onclick="verifyPin()">
@@ -2320,11 +2383,19 @@ function doGet(e) {
       function init() {
         load();
 
+        // Preload default dealerships if none exist
+        if (!dealers.length) {
+          dealers.push(
+            "Ed Morse Cadillac - Tampa",
+            "Ed Morse Cadillac - Brandon",
+          );
+          save();
+        }
+
         // Restore owner session
         const ownerSession = sessionStorage.getItem("rad_owner") === "true";
         setOwnerState(ownerSession);
 
-        // Default PIN (shared across all instances)
         const DEF_PIN =
           "144a30d4b2dfbdba0b068dec7ed037872425ef00c59c56082c45c218e9c8f912";
         cfg.ownerPin = DEF_PIN;
@@ -2754,6 +2825,7 @@ function doGet(e) {
         save();
         populateDealers();
         document.getElementById("dealership").value = v;
+        syncDealersToSheet();
       }
 
       function toggleFav(d) {
@@ -2777,6 +2849,7 @@ function doGet(e) {
         if (document.getElementById("dealership").value === d) {
           setDefaultDealership();
         }
+        syncDealersToSheet();
       }
 
       let priceEditDealer = "";
@@ -3050,9 +3123,11 @@ function doGet(e) {
           const i = entries.findIndex((x) => x.id === editId);
           if (i !== -1)
             entries[i] = { ...entry, id: editId, created: entries[i].created };
+          var wasEdit = true;
           editId = null;
         } else {
           entries.push(entry);
+          var wasEdit = false;
         }
         document.querySelector("#view-entry .btn-primary").textContent =
           "Submit Entry";
@@ -3062,7 +3137,7 @@ function doGet(e) {
         e.target.reset();
         setDefaultDate();
         setDefaultDealership();
-        postEntry(entry);
+        postEntry(entry, wasEdit);
       }
 
       // ─── Quick Wash ───
@@ -3135,13 +3210,6 @@ function doGet(e) {
         closeWashModal();
         renderDashboard();
         showToast(count + " wash(es) added for " + dealer, "success");
-        if (isOwner) {
-          syncToSheets([e]);
-        }
-        save();
-        closeWashModal();
-        renderDashboard();
-        showToast(count + " wash(es) added for " + dealer, "success");
         syncToSheets([e]);
       }
 
@@ -3152,6 +3220,24 @@ function doGet(e) {
         save();
         renderDashboard();
         showToast("Entry deleted.", "info");
+        deleteSheetEntry(id);
+      }
+
+      async function deleteSheetEntry(id) {
+        const url = cfg.sheetsUrl;
+        if (!url) return;
+        try {
+          const body = new URLSearchParams({
+            data: JSON.stringify({ action: "deleteEntry", id }),
+          });
+          await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body,
+          });
+        } catch (err) {
+          console.error("Sheet delete error:", err);
+        }
       }
 
       // ─── Filter Panel ───
@@ -3493,12 +3579,13 @@ function doGet(e) {
       // ─── Google Sheets Sync (append-only + read) ───
       let syncing = false;
 
-      async function postEntry(e) {
+      async function postEntry(e, isUpdate) {
         const url = cfg.sheetsUrl;
         if (!url || syncing) return;
         syncing = true;
         try {
-          const body = new URLSearchParams({ data: JSON.stringify(e) });
+          const payload = isUpdate ? { action: "updateEntry", entry: e } : e;
+          const body = new URLSearchParams({ data: JSON.stringify(payload) });
           const res = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -3570,6 +3657,23 @@ function doGet(e) {
         }
       }
 
+      async function syncDealersToSheet() {
+        const url = cfg.sheetsUrl;
+        if (!url) return;
+        try {
+          const body = new URLSearchParams({
+            data: JSON.stringify({ action: "setDealers", dealers }),
+          });
+          await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body,
+          });
+        } catch (err) {
+          console.error("Dealers sync error:", err);
+        }
+      }
+
       async function fetchEntries() {
         const url = cfg.sheetsUrl;
         if (!url) return;
@@ -3608,6 +3712,17 @@ function doGet(e) {
             fetchEntries();
             return;
           }
+          // Sync dealers from sheet (shared across all instances)
+          if (data.dealers && Array.isArray(data.dealers)) {
+            const sheetDealers = data.dealers.filter(
+              (d) => d !== "Mobile Detail" && d !== "CycleSprings",
+            );
+            // Merge: keep Mobile Detail and CycleSprings, use sheet's list for the rest
+            const merged = ["Mobile Detail", "CycleSprings", ...sheetDealers];
+            dealers = sheetDealers;
+            save();
+            populateDealers();
+          }
           // Merge: keep local entries whose IDs aren't in the sheet (offline additions)
           const sheetIds = new Set(fetched.map((e) => e.id));
           const localOnly = entries.filter((e) => !sheetIds.has(e.id));
@@ -3619,9 +3734,39 @@ function doGet(e) {
         }
       }
 
+      // ─── Sync All ───
+      async function syncAllEntries() {
+        const url = cfg.sheetsUrl;
+        if (!url) {
+          showToast("No Sheets URL configured in Settings.", "error");
+          return;
+        }
+        if (!entries.length) {
+          showToast("No entries to sync.", "info");
+          return;
+        }
+        await syncToSheets(entries);
+        renderDashboard();
+      }
+
       // ─── Clear All ───
-      function clearAll() {
+      async function clearAll() {
         if (!confirm("Delete ALL entries? This cannot be undone.")) return;
+        const url = cfg.sheetsUrl;
+        if (url) {
+          try {
+            const body = new URLSearchParams({
+              data: JSON.stringify({ action: "clearAll" }),
+            });
+            await fetch(url, {
+              method: "POST",
+              headers: { "Content-Type": "application/x-www-form-urlencoded" },
+              body,
+            });
+          } catch (err) {
+            console.error("Sheet clear error:", err);
+          }
+        }
         entries = [];
         save();
         renderDashboard();
