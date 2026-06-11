@@ -2551,6 +2551,13 @@ function doGet(e) {
           ? "Connected"
           : "Not connected";
         hideSheetsUrlEditor();
+        if (cfg.sheetsUrl) {
+          syncPinToSheet(
+            cfg.ownerPin ||
+              "144a30d4b2dfbdba0b068dec7ed037872425ef00c59c56082c45c218e9c8f912",
+          );
+          fetchEntries();
+        }
       }
 
       function toggleScriptCode() {
