@@ -2314,14 +2314,11 @@ function doGet(e) {
         setOwnerState(ownerSession);
 
         // Default PIN (shared across all instances)
-        const DEFAULT_PIN_HASH =
+        const DEF_PIN =
           "144a30d4b2dfbdba0b068dec7ed037872425ef00c59c56082c45c218e9c8f912";
-        if (!cfg.ownerPin) {
-          cfg.ownerPin = DEFAULT_PIN_HASH;
-          localStorage.setItem("rad_cfg", JSON.stringify(cfg));
-          // Sync default PIN to sheet if URL is configured
-          if (cfg.sheetsUrl) syncPinToSheet(DEFAULT_PIN_HASH);
-        }
+        cfg.ownerPin = DEF_PIN;
+        localStorage.setItem("rad_cfg", JSON.stringify(cfg));
+        if (cfg.sheetsUrl) syncPinToSheet(DEF_PIN);
 
         // Seed CycleSprings custom pricing example
         if (!cfg.dealerPrices) cfg.dealerPrices = {};
@@ -2443,7 +2440,10 @@ function doGet(e) {
           return;
         }
         const h = await hashPin(pin);
-        if (h === cfg.ownerPin) {
+        const expected =
+          cfg.ownerPin ||
+          "144a30d4b2dfbdba0b068dec7ed037872425ef00c59c56082c45c218e9c8f912";
+        if (h === expected) {
           closePinModal();
           setOwnerState(true);
           showToast("Unlocked — owner access.", "success");
@@ -3082,29 +3082,32 @@ function doGet(e) {
           String(today.getMonth() + 1).padStart(2, "0") +
           "-" +
           String(today.getDate()).padStart(2, "0");
-        const batch = [];
-        for (let i = 0; i < count; i++) {
-          const e = {
-            id: crypto.randomUUID
-              ? crypto.randomUUID()
-              : Date.now().toString(36) + Math.random().toString(36).slice(2),
-            date: ds,
-            dealership: dealer,
-            vin: "",
-            brand: "",
-            model: "",
-            year: "",
-            stock: "",
-            ro: "",
-            department: "Service",
-            service: "Service Wash",
-            price: 10,
-            notes: "Quick wash",
-            invoice: "",
-            created: Date.now(),
-          };
-          entries.push(e);
-          batch.push(e);
+        const e = {
+          id: crypto.randomUUID
+            ? crypto.randomUUID()
+            : Date.now().toString(36) + Math.random().toString(36).slice(2),
+          date: ds,
+          dealership: dealer,
+          vin: "",
+          brand: "",
+          model: "",
+          year: "",
+          stock: "",
+          ro: "",
+          department: "Service",
+          service: "Service Wash",
+          price: count * 10,
+          notes: count + " washes",
+          invoice: "",
+          created: Date.now(),
+        };
+        entries.push(e);
+        save();
+        closeWashModal();
+        renderDashboard();
+        showToast(count + " wash(es) added for " + dealer, "success");
+        if (isOwner) {
+          syncToSheets([e]);
         }
         save();
         closeWashModal();
