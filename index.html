@@ -152,6 +152,11 @@
         border-radius: 20px;
         white-space: nowrap;
       }
+      .pending-badge {
+        background: rgba(255, 193, 7, 0.15);
+        color: #ffc107;
+        cursor: pointer;
+      }
 
       /* ── Desktop Nav ── */
       .desktop-nav {
@@ -1142,6 +1147,13 @@
           </div>
         </div>
         <span class="badge" id="headerCount">0 entries</span>
+        <span
+          class="badge pending-badge"
+          id="pendingBadge"
+          style="display: none"
+          onclick="flushPendingQueue()"
+          >0 pending</span
+        >
         <button
           class="lock-btn"
           id="lockBtn"
@@ -1520,25 +1532,15 @@
             "
           >
             <p>
-              <strong style="color: var(--text)">How to host this app:</strong>
-            </p>
-            <p>
-              1. Upload this HTML file to any static host (GitHub Pages,
-              Netlify, Vercel, or even open locally).
-            </p>
-            <p>
-              2. That's it — all data saves in your browser's local storage.
-            </p>
-            <br />
-            <p>
-              <strong style="color: var(--text)"
-                >Connect to Google Sheets:</strong
+              1. Open
+              <a
+                href="https://docs.google.com/spreadsheets/d/1Y7R0JdwKP9VbjmXVXrJw4pfshEcYiJPJla2bWel6F0I/edit"
+                target="_blank"
+                >your sheet</a
               >
+              → <em>Extensions → Apps Script</em>.
             </p>
-            <p>
-              1. Open your Google Sheet → <em>Extensions → Apps Script</em>.
-            </p>
-            <p>2. Delete all existing code and paste the code block below.</p>
+            <p>2. Delete any existing code and paste the code block below.</p>
             <p>3. Click <em>Deploy → New Deployment</em>.</p>
             <p>
               4. Set Type: <em>Web App</em>, Execute as: <em>Me</em>, Who has
@@ -1587,45 +1589,46 @@
                 white-space: pre-wrap;
               "
             >
+function jsonp(data) {
+  var html = '<script>window.top.postMessage(' + JSON.stringify(data) + ', "*");<' + '/script>';
+  return HtmlService.createHtmlOutput(html).setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
 function doPost(e) {
   try {
     var raw = e.parameter.data || (e.postData ? e.postData.contents : '');
     var d = JSON.parse(raw);
+    var cid = d._callId || 0;
 
-    // Handle PIN sync
     if (d.action === 'setPin' && d.ownerPin) {
       PropertiesService.getScriptProperties().setProperty('ownerPin', d.ownerPin);
-      return ContentService.createTextOutput(JSON.stringify({status:'ok'})).setMimeType(ContentService.MimeType.JSON);
+      return jsonp({status:'ok', _callId: cid});
     }
 
-    // Handle sheets URL propagation
     if (d.action === 'setSheetsUrl' && d.sheetsUrl) {
       PropertiesService.getScriptProperties().setProperty('sheetsUrl', d.sheetsUrl);
-      return ContentService.createTextOutput(JSON.stringify({status:'ok'})).setMimeType(ContentService.MimeType.JSON);
+      return jsonp({status:'ok', _callId: cid});
     }
 
-    // Handle update entry (edit) — find row by ID and replace in-place
     if (d.action === 'updateEntry' && d.entry) {
       var r = d.entry;
-      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var ss = getSheet();
       var sheet = ss.getSheetByName(r.dealership || 'Unknown');
-      if (!sheet) return ContentService.createTextOutput(JSON.stringify({status:'error', message:'Sheet not found'})).setMimeType(ContentService.MimeType.JSON);
+      if (!sheet) return jsonp({status:'error', message:'Sheet not found', _callId: cid});
       var data = sheet.getDataRange().getValues();
+      var headers = ['Date','Dealership','VIN','Brand','Model','Year','Stock#','RO#','Department','Service','Price','Invoice','Notes','ID','Synced At'];
       for (var i = 2; i < data.length; i++) {
         if (data[i][13] === r.id) {
-          var headers = ['Date','Dealership','VIN','Brand','Model','Year','Stock#','RO#','Department','Service','Price','Invoice','Notes','ID','Synced At'];
           var row = [r.date, r.dealership, r.vin, r.brand, r.model, r.year, r.stock, r.ro, r.department, r.service, r.price, r.invoice || '', r.notes, r.id || '', new Date().toISOString()];
           sheet.getRange(i + 1, 1, 1, headers.length).setValues([row]);
-          return ContentService.createTextOutput(JSON.stringify({status:'ok', action:'updated'})).setMimeType(ContentService.MimeType.JSON);
+          return jsonp({status:'ok', action:'updated', _callId: cid});
         }
       }
-      // ID not found — append instead
-      return ContentService.createTextOutput(JSON.stringify({status:'error', message:'Entry ID not found for update'})).setMimeType(ContentService.MimeType.JSON);
+      return jsonp({status:'error', message:'Entry ID not found for update', _callId: cid});
     }
 
-    // Handle delete entry — find row by ID and remove
     if (d.action === 'deleteEntry' && d.id) {
-      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var ss = getSheet();
       var sheets = ss.getSheets();
       for (var si = 0; si < sheets.length; si++) {
         var s = sheets[si];
@@ -1634,40 +1637,34 @@ function doPost(e) {
         for (var ri = 2; ri < data.length; ri++) {
           if (data[ri][13] === d.id) {
             s.deleteRow(ri + 1);
-            return ContentService.createTextOutput(JSON.stringify({status:'ok', action:'deleted'})).setMimeType(ContentService.MimeType.JSON);
+            return jsonp({status:'ok', action:'deleted', _callId: cid});
           }
         }
       }
-      return ContentService.createTextOutput(JSON.stringify({status:'error', message:'Entry ID not found for delete'})).setMimeType(ContentService.MimeType.JSON);
+      return jsonp({status:'error', message:'Entry ID not found for delete', _callId: cid});
     }
 
-    // Handle clear all — delete all data rows (keep headers)
     if (d.action === 'clearAll') {
-      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var ss = getSheet();
       var sheets = ss.getSheets();
       for (var si = 0; si < sheets.length; si++) {
         var s = sheets[si];
         if (s.getName() === 'Sheet1') continue;
         var lr = s.getLastRow();
-        if (lr > 2) {
-          s.deleteRows(3, lr - 2);
-        }
+        if (lr > 2) s.deleteRows(3, lr - 2);
       }
-      return ContentService.createTextOutput(JSON.stringify({status:'ok', action:'cleared'})).setMimeType(ContentService.MimeType.JSON);
+      return jsonp({status:'ok', action:'cleared', _callId: cid});
     }
 
-    // Handle dealership sync
     if (d.action === 'setDealers' && d.dealers) {
       PropertiesService.getScriptProperties().setProperty('dealers', JSON.stringify(d.dealers));
-      return ContentService.createTextOutput(JSON.stringify({status:'ok'})).setMimeType(ContentService.MimeType.JSON);
+      return jsonp({status:'ok', _callId: cid});
     }
 
     var entries = d.entries || d;
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var ss = getSheet();
     if (!Array.isArray(entries)) entries = [entries];
-    if (entries.length === 0) {
-      return ContentService.createTextOutput(JSON.stringify({status:'ok', count:0})).setMimeType(ContentService.MimeType.JSON);
-    }
+    if (entries.length === 0) return jsonp({status:'ok', count:0, _callId: cid});
     var headers = ['Date','Dealership','VIN','Brand','Model','Year','Stock#','RO#','Department','Service','Price','Invoice','Notes','ID','Synced At'];
 
     var groups = {};
@@ -1703,20 +1700,24 @@ function doPost(e) {
       sheet.getRange(lastRow + 1, 1, rows.length, headers.length).setValues(rows);
     });
 
-    return ContentService.createTextOutput(JSON.stringify({status:'ok', count: entries.length})).setMimeType(ContentService.MimeType.JSON);
+    return jsonp({status:'ok', count: entries.length, _callId: cid});
   } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({status:'error', message: err.toString()})).setMimeType(ContentService.MimeType.JSON);
+    var cid = 0;
+    try { cid = JSON.parse(e.parameter.data || (e.postData ? e.postData.contents : ''))._callId || 0; } catch(ee) {}
+    return jsonp({status:'error', message: err.toString(), _callId: cid});
   }
 }
 
 function doGet(e) {
+  var cid = 0;
   try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var raw = JSON.parse(e.parameter.data || '{}');
+    cid = raw._callId || 0;
+    var ss = getSheet();
     var sheets = ss.getSheets();
     var allEntries = [];
     var headers = ['Date','Dealership','VIN','Brand','Model','Year','Stock#','RO#','Department','Service','Price','Invoice','Notes','ID','Synced At'];
 
-    // Read shared owner PIN, sheets URL, and dealers from script properties
     var ownerPin = PropertiesService.getScriptProperties().getProperty('ownerPin') || '';
     var sheetsUrl = PropertiesService.getScriptProperties().getProperty('sheetsUrl') || '';
     var dealersStr = PropertiesService.getScriptProperties().getProperty('dealers') || '';
@@ -1727,7 +1728,6 @@ function doGet(e) {
       if (name === 'Sheet1') return;
       var data = sheet.getDataRange().getValues();
       if (data.length < 3) return;
-
       for (var i = 2; i < data.length; i++) {
         var row = data[i];
         allEntries.push({
@@ -1749,12 +1749,20 @@ function doGet(e) {
       }
     });
 
-    return ContentService.createTextOutput(JSON.stringify({status:'ok', entries: allEntries, ownerPin: ownerPin, sheetsUrl: sheetsUrl, dealers: dealers})).setMimeType(ContentService.MimeType.JSON);
+    return jsonp({status:'ok', entries: allEntries, ownerPin: ownerPin, sheetsUrl: sheetsUrl, dealers: dealers, _callId: cid});
   } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({status:'error', message: err.toString()})).setMimeType(ContentService.MimeType.JSON);
+    return jsonp({status:'error', message: err.toString(), _callId: cid});
   }
 }
 
+var SHEET_ID = '1Y7R0JdwKP9VbjmXVXrJw4pfshEcYiJPJla2bWel6F0I';
+function getSheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (ss) return ss;
+  try { ss = SpreadsheetApp.openById(SHEET_ID); } catch(e) {}
+  if (ss) return ss;
+  throw new Error('Cannot access sheet. Create the script from Extensions > Apps Script in your sheet.');
+}
 </pre
             >
           </div>
@@ -1929,6 +1937,12 @@ function doGet(e) {
     </div>
 
     <!-- ═══ BOTTOM NAV (mobile) ═══ -->
+    <!-- hidden iframe for Apps Script cross-origin communication -->
+    <iframe
+      id="appsScriptFrame"
+      name="appsScriptFrame"
+      style="display: none"
+    ></iframe>
     <nav class="bottom-nav">
       <button
         class="nav-btn active"
@@ -2352,8 +2366,7 @@ function doGet(e) {
       };
 
       // ── Bootstrap Sheets URL (fallback for new users) ──
-      const FALLBACK_SHEETS_URL =
-        "https://script.google.com/macros/s/AKfycbyA4qD6Z8S2mHdGS12fQG6Q5JpVtuwltIiIp_uBIgp30k5Ln3H8--fovCKRpV_--GRzXw/exec";
+      const FALLBACK_SHEETS_URL = "";
       // ── State ──
       let entries = [];
       let cfg = { sheetsUrl: "" };
@@ -2361,6 +2374,54 @@ function doGet(e) {
       let editId = null;
       let selectedFilterDealers = [];
       let isOwner = false;
+
+      // ── Apps Script iframe communication (no CORS) ──
+      let callId = 0;
+      const pending = {};
+
+      window.addEventListener("message", (e) => {
+        const d = e.data;
+        if (d && d._callId && pending[d._callId]) {
+          clearTimeout(pending[d._callId].timer);
+          if (d.status === "ok") pending[d._callId].resolve(d);
+          else pending[d._callId].reject(new Error(d.message || "Error"));
+          delete pending[d._callId];
+        }
+      });
+
+      function callAppsScript(params, isPost, overrideUrl) {
+        return new Promise((resolve, reject) => {
+          const url = overrideUrl || cfg.sheetsUrl;
+          if (!url) {
+            reject(new Error("No URL"));
+            return;
+          }
+          const id = ++callId;
+          const timer = setTimeout(() => {
+            delete pending[id];
+            reject(new Error("Request timed out"));
+          }, 15000);
+          pending[id] = { resolve, reject, timer };
+          const full = { ...params, _callId: id };
+          if (isPost) {
+            const form = document.createElement("form");
+            form.method = "POST";
+            form.action = url;
+            form.target = "appsScriptFrame";
+            form.style.display = "none";
+            const input = document.createElement("input");
+            input.name = "data";
+            input.value = JSON.stringify(full);
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+          } else {
+            document.getElementById("appsScriptFrame").src =
+              url + "?data=" + encodeURIComponent(JSON.stringify(full));
+          }
+        });
+      }
 
       // ── PIN hash utility ──
       async function hashPin(pin) {
@@ -2405,12 +2466,36 @@ function doGet(e) {
         });
         if (migrated) save();
 
+        // Aggregate any duplicate Service Wash entries by date+dealership
+        const washMap = {};
+        const deduped = [];
+        let washed = false;
+        entries.forEach((e) => {
+          if (e.service === "Service Wash") {
+            const key = e.date + "|" + e.dealership;
+            if (washMap[key]) {
+              const t = washMap[key];
+              const n = (parseInt(t.notes) || 0) + (parseInt(e.notes) || 0);
+              t.notes = n + " washes";
+              t.price = n * 10;
+              washed = true;
+            } else {
+              washMap[key] = { ...e };
+              deduped.push(washMap[key]);
+            }
+          } else {
+            deduped.push(e);
+          }
+        });
+        if (washed) {
+          entries = deduped;
+          save();
+        }
+
         const DEF_PIN =
           "144a30d4b2dfbdba0b068dec7ed037872425ef00c59c56082c45c218e9c8f912";
         cfg.ownerPin = DEF_PIN;
         localStorage.setItem("rad_cfg", JSON.stringify(cfg));
-        // Clear any previous sheet-broken flag (URL may have been updated)
-        if (cfg.sheetsUrl) localStorage.removeItem("rad_sheet_broken");
         if (cfg.sheetsUrl) syncPinToSheet(DEF_PIN);
 
         // Seed CycleSprings custom pricing example
@@ -2467,6 +2552,20 @@ function doGet(e) {
         // PIN modal Enter key support
         document.getElementById("pinInput").addEventListener("keydown", (e) => {
           if (e.key === "Enter") verifyPin();
+        });
+
+        // Offline queue: load pending, retry periodically & on visibility change
+        loadPendingQueue();
+        setInterval(() => {
+          if (cfg.sheetsUrl) flushPendingQueue();
+        }, 30000);
+        document.addEventListener("visibilitychange", () => {
+          if (document.visibilityState === "visible" && cfg.sheetsUrl)
+            flushPendingQueue();
+        });
+        // Retry on online event
+        window.addEventListener("online", () => {
+          if (cfg.sheetsUrl) flushPendingQueue();
         });
       }
 
@@ -2645,7 +2744,6 @@ function doGet(e) {
         const oldUrl = cfg.sheetsUrl;
         const newUrl = el.value.trim();
         if (!newUrl) return;
-        localStorage.removeItem("rad_sheet_broken");
         // Save new URL locally
         cfg.sheetsUrl = newUrl;
         localStorage.setItem("rad_cfg", JSON.stringify(cfg));
@@ -2659,16 +2757,11 @@ function doGet(e) {
         fetchEntries();
         // Propagate new URL via old sheet so other instances discover it
         if (oldUrl && oldUrl !== newUrl) {
-          fetch(oldUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({
-              data: JSON.stringify({
-                action: "setSheetsUrl",
-                sheetsUrl: newUrl,
-              }),
-            }),
-          }).catch(() => {});
+          callAppsScript(
+            { action: "setSheetsUrl", sheetsUrl: newUrl },
+            true,
+            oldUrl,
+          ).catch(() => {});
         }
       }
 
@@ -3199,31 +3292,48 @@ function doGet(e) {
           String(today.getMonth() + 1).padStart(2, "0") +
           "-" +
           String(today.getDate()).padStart(2, "0");
-        const e = {
-          id: crypto.randomUUID
-            ? crypto.randomUUID()
-            : Date.now().toString(36) + Math.random().toString(36).slice(2),
-          date: ds,
-          dealership: dealer,
-          vin: "",
-          brand: "",
-          model: "",
-          year: "",
-          stock: "",
-          ro: "",
-          department: "Service",
-          service: "Service Wash",
-          price: count * 10,
-          notes: count + " washes",
-          invoice: "",
-          created: Date.now(),
-        };
-        entries.push(e);
+        // Check for existing Service Wash entry for same dealership + date
+        const existing = entries.find(
+          (e) =>
+            e.service === "Service Wash" &&
+            e.dealership === dealer &&
+            e.date === ds,
+        );
+        if (existing) {
+          const n = (parseInt(existing.notes) || 0) + count;
+          existing.notes = n + " washes";
+          existing.price = n * 10;
+        } else {
+          const e = {
+            id: crypto.randomUUID
+              ? crypto.randomUUID()
+              : Date.now().toString(36) + Math.random().toString(36).slice(2),
+            date: ds,
+            dealership: dealer,
+            vin: "",
+            brand: "",
+            model: "",
+            year: "",
+            stock: "",
+            ro: "",
+            department: "Service",
+            service: "Service Wash",
+            price: count * 10,
+            notes: count + " washes",
+            invoice: "",
+            created: Date.now(),
+          };
+          entries.push(e);
+        }
         save();
         closeWashModal();
         renderDashboard();
-        showToast(count + " wash(es) added for " + dealer, "success");
-        syncToSheets([e]);
+        showToast(count + " wash(es) added to " + dealer, "success");
+        if (existing) {
+          postEntry(existing, true);
+        } else {
+          syncToSheets([entries[entries.length - 1]]);
+        }
       }
 
       // ─── Delete Entry ───
@@ -3237,17 +3347,9 @@ function doGet(e) {
       }
 
       async function deleteSheetEntry(id) {
-        const url = cfg.sheetsUrl;
-        if (!url) return;
+        if (!cfg.sheetsUrl) return;
         try {
-          const body = new URLSearchParams({
-            data: JSON.stringify({ action: "deleteEntry", id }),
-          });
-          await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body,
-          });
+          await callAppsScript({ action: "deleteEntry", id }, true);
         } catch (err) {
           console.error("Sheet delete error:", err);
         }
@@ -3589,55 +3691,48 @@ function doGet(e) {
         showToast("CSV exported.", "success");
       }
 
-      // ─── Google Sheets Sync (append-only + read) ───
-      let syncing = false;
+      // ─── Offline Queue ───
+      let pendingQueue = [];
+
+      function loadPendingQueue() {
+        try {
+          const raw = localStorage.getItem("rad_pending");
+          pendingQueue = raw ? JSON.parse(raw) : [];
+        } catch { pendingQueue = []; }
+        updatePendingBadge();
+      }
+
+      function savePendingQueue() {
+        localStorage.setItem("rad_pending", JSON.stringify(pendingQueue));
+        updatePendingBadge();
+      }
+
+      function updatePendingBadge() {
+        const el = document.getElementById("pendingBadge");
+        if (!el) return;
+        const n = pendingQueue.length;
+        el.style.display = n ? "inline" : "none";
+        el.textContent = n + " pending";
+      }
+
+      // ─── Google Sheets Sync (iframe, no CORS) ───
 
       async function postEntry(e, isUpdate) {
-        const url = cfg.sheetsUrl;
-        if (!url || syncing) return;
-        syncing = true;
+        if (!cfg.sheetsUrl) return;
         try {
           const payload = isUpdate ? { action: "updateEntry", entry: e } : e;
-          const body = new URLSearchParams({ data: JSON.stringify(payload) });
-          const res = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body,
-          });
-          const text = await res.text();
-          let ok = false;
-          try {
-            const j = JSON.parse(text);
-            ok = j.status === "ok";
-          } catch {}
-          if (!ok) throw new Error("Response: " + text.slice(0, 100));
+          await callAppsScript(payload, true);
         } catch (err) {
           console.error("Sheet sync error:", err);
-        } finally {
-          syncing = false;
+          pendingQueue.push({ entry: e, isUpdate: !!isUpdate, ts: Date.now() });
+          savePendingQueue();
         }
       }
 
       async function syncToSheets(entriesArray) {
-        const url = cfg.sheetsUrl;
-        if (!url || !entriesArray.length || syncing) return;
-        syncing = true;
+        if (!cfg.sheetsUrl || !entriesArray.length) return;
         try {
-          const body = new URLSearchParams({
-            data: JSON.stringify({ entries: entriesArray }),
-          });
-          const res = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body,
-          });
-          const text = await res.text();
-          let ok = false;
-          try {
-            const j = JSON.parse(text);
-            ok = j.status === "ok";
-          } catch {}
-          if (!ok) throw new Error("Response: " + text.slice(0, 100));
+          await callAppsScript({ entries: entriesArray }, true);
           showToast(
             entriesArray.length +
               " entr" +
@@ -3646,69 +3741,72 @@ function doGet(e) {
             "success",
           );
         } catch (err) {
-          showToast("Sync failed. Check Settings for Sheets URL.", "error");
+          entriesArray.forEach((e) =>
+            pendingQueue.push({ entry: e, isUpdate: false, ts: Date.now() }),
+          );
+          savePendingQueue();
+          showToast(
+            "Offline — " +
+              pendingQueue.length +
+              " entr" +
+              (pendingQueue.length === 1 ? "y" : "ies") +
+              " queued for later.",
+            "info",
+          );
           console.error("Sheets send error:", err);
-        } finally {
-          syncing = false;
         }
       }
 
+      async function flushPendingQueue() {
+        if (!pendingQueue.length || !cfg.sheetsUrl) return;
+        const batch = pendingQueue.splice(0);
+        pendingQueue = [];
+        savePendingQueue();
+        let ok = 0;
+        for (const item of batch) {
+          try {
+            await callAppsScript(
+              item.isUpdate ? { action: "updateEntry", entry: item.entry } : item.entry,
+              true,
+            );
+            ok++;
+          } catch {
+            pendingQueue.push(item);
+          }
+        }
+        savePendingQueue();
+        if (ok)
+          showToast(
+            ok + " pending entr" + (ok === 1 ? "y" : "ies") + " synced.",
+            "success",
+          );
+      }
+
       async function syncPinToSheet(hash) {
-        const url = cfg.sheetsUrl;
-        if (!url) return;
+        if (!cfg.sheetsUrl) return;
         try {
-          const body = new URLSearchParams({
-            data: JSON.stringify({ action: "setPin", ownerPin: hash }),
-          });
-          await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body,
-          });
+          await callAppsScript(
+            { action: "setPin", ownerPin: hash },
+            true,
+          );
         } catch (err) {
-          console.error("PIN sync to sheet error:", err);
+          console.error("PIN sync error:", err);
         }
       }
 
       async function syncDealersToSheet() {
-        const url = cfg.sheetsUrl;
-        if (!url) return;
+        if (!cfg.sheetsUrl) return;
         try {
-          const body = new URLSearchParams({
-            data: JSON.stringify({ action: "setDealers", dealers }),
-          });
-          await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body,
-          });
+          await callAppsScript({ action: "setDealers", dealers }, true);
         } catch (err) {
           console.error("Dealers sync error:", err);
         }
       }
 
       async function fetchEntries() {
-        const url = cfg.sheetsUrl;
-        if (!url) return;
-        if (localStorage.getItem("rad_sheet_broken") === "1") return;
+        if (!cfg.sheetsUrl) return;
         try {
-          const res = await fetch(url + "?mode=fetch");
-          if (!res.ok) {
-            showToast(
-              "Sheet returned error " +
-                res.status +
-                ". Check the URL in Settings.",
-              "error",
-            );
-            return;
-          }
-          const text = await res.text();
-          let data;
-          try {
-            data = JSON.parse(text);
-          } catch {
-            return;
-          }
+          const data = await callAppsScript({ mode: "fetch" }, false);
           if (data.status !== "ok") return;
           const fetched = data.entries.map((e) => ({
             ...e,
@@ -3721,43 +3819,57 @@ function doGet(e) {
                   Math.random().toString(36).slice(2)),
             price: Number(e.price) || 0,
           }));
-          // Sync owner PIN from sheet (shared across all instances)
           if (data.ownerPin) {
             cfg.ownerPin = data.ownerPin;
             localStorage.setItem("rad_cfg", JSON.stringify(cfg));
           }
-          // If sheet reports a different canonical URL, switch to it
           if (data.sheetsUrl && data.sheetsUrl !== cfg.sheetsUrl) {
             cfg.sheetsUrl = data.sheetsUrl;
             localStorage.setItem("rad_cfg", JSON.stringify(cfg));
-            document.getElementById("sheetsUrlStatus").textContent =
-              "Connected";
+            document.getElementById("sheetsUrlStatus").textContent = "Connected";
             document.getElementById("sheetsUrlSettings").value = data.sheetsUrl;
-            // Re-fetch from the new URL
             fetchEntries();
             return;
           }
-          // Sync dealers from sheet (shared across all instances)
-          if (
-            data.dealers &&
-            Array.isArray(data.dealers) &&
-            data.dealers.length
-          ) {
+          if (data.dealers && Array.isArray(data.dealers) && data.dealers.length) {
             dealers = data.dealers.filter(
               (d) => d !== "Mobile Detail" && d !== "CycleSprings",
             );
             save();
             populateDealers();
           }
-          // Merge: keep local entries whose IDs aren't in the sheet (offline additions)
           const sheetIds = new Set(fetched.map((e) => e.id));
           const localOnly = entries.filter((e) => !sheetIds.has(e.id));
           entries = [...fetched, ...localOnly];
+          const washMap = {};
+          const deduped = [];
+          const absorbed = [];
+          entries.forEach((e) => {
+            if (e.service === "Service Wash") {
+              const key = e.date + "|" + e.dealership;
+              if (washMap[key]) {
+                const t = washMap[key];
+                const n = (parseInt(t.notes) || 0) + (parseInt(e.notes) || 0);
+                t.notes = n + " washes";
+                t.price = n * 10;
+                absorbed.push(e.id);
+              } else {
+                washMap[key] = { ...e };
+                deduped.push(washMap[key]);
+              }
+            } else {
+              deduped.push(e);
+            }
+          });
+          if (absorbed.length) {
+            entries = deduped;
+            absorbed.forEach((id) => deleteSheetEntry(id));
+          }
           save();
           renderDashboard();
+          flushPendingQueue();
         } catch (err) {
           console.error("Fetch from sheets error:", err);
-          localStorage.setItem("rad_sheet_broken", "1");
           document.getElementById("sheetsUrlStatus").textContent =
             "Not connected";
           showToast(
@@ -3766,6 +3878,8 @@ function doGet(e) {
           );
         }
       }
+
+      // ─── Sync All ───
 
       // ─── Sync All ───
       async function syncAllEntries() {
@@ -3785,17 +3899,9 @@ function doGet(e) {
       // ─── Clear All ───
       async function clearAll() {
         if (!confirm("Delete ALL entries? This cannot be undone.")) return;
-        const url = cfg.sheetsUrl;
-        if (url) {
+        if (cfg.sheetsUrl) {
           try {
-            const body = new URLSearchParams({
-              data: JSON.stringify({ action: "clearAll" }),
-            });
-            await fetch(url, {
-              method: "POST",
-              headers: { "Content-Type": "application/x-www-form-urlencoded" },
-              body,
-            });
+            await callAppsScript({ action: "clearAll" }, true);
           } catch (err) {
             console.error("Sheet clear error:", err);
           }
