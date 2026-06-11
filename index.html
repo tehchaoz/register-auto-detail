@@ -1590,8 +1590,7 @@
               "
             >
 function jsonp(data) {
-  var output = 'radCallback(' + JSON.stringify(data) + ');';
-  return ContentService.createTextOutput(output).setMimeType(ContentService.MimeType.JAVASCRIPT);
+  return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
 }
 
 function doGet(e) {
@@ -2365,45 +2364,27 @@ function getSheet() {
       let selectedFilterDealers = [];
       let isOwner = false;
 
-      // ── Apps Script JSONP via script tag (no CORS) ──
-      let callId = 0;
-      const pending = {};
+      // ── Netlify Function proxy → Google Sheets ──
+      const PROXY_URL = "/.netlify/functions/proxy";
 
-      window.radCallback = function (data) {
-        if (data && data._callId && pending[data._callId]) {
-          clearTimeout(pending[data._callId].timer);
-          if (data.status === "ok") pending[data._callId].resolve(data);
-          else pending[data._callId].reject(new Error(data.message || "Error"));
-          delete pending[data._callId];
+      async function callAppsScript(params) {
+        if (!cfg.sheetsUrl) throw new Error("No URL");
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 15000);
+        try {
+          const res = await fetch(PROXY_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url: cfg.sheetsUrl, data: params }),
+            signal: controller.signal,
+          });
+          if (!res.ok) throw new Error("Proxy error: " + res.status);
+          const data = await res.json();
+          if (data.status !== "ok") throw new Error(data.message || "Error");
+          return data;
+        } finally {
+          clearTimeout(timer);
         }
-      };
-
-      function callAppsScript(params, overrideUrl) {
-        return new Promise((resolve, reject) => {
-          const url = overrideUrl || cfg.sheetsUrl;
-          if (!url) {
-            reject(new Error("No URL"));
-            return;
-          }
-          const id = ++callId;
-          const timer = setTimeout(() => {
-            delete pending[id];
-            reject(new Error("Request timed out"));
-          }, 15000);
-          pending[id] = { resolve, reject, timer };
-          const full = { ...params, _callId: id };
-          const script = document.createElement("script");
-          script.src =
-            url + "?data=" + encodeURIComponent(JSON.stringify(full));
-          script.onerror = () => {
-            clearTimeout(timer);
-            delete pending[id];
-            reject(new Error("Script load failed"));
-          };
-          script.cleanup = setTimeout(() => script.remove(), 5000);
-          script.onload = () => clearTimeout(script.cleanup);
-          document.head.appendChild(script);
-        });
       }
 
       // ── PIN hash utility ──
@@ -2724,32 +2705,21 @@ function getSheet() {
 
       function saveSheetsUrl() {
         const el = document.getElementById("sheetsUrlSettings");
-        const oldUrl = cfg.sheetsUrl;
         const newUrl = el.value.trim();
         if (!newUrl) return;
-        // Save new URL locally
         cfg.sheetsUrl = newUrl;
         localStorage.setItem("rad_cfg", JSON.stringify(cfg));
         document.getElementById("sheetsUrlStatus").textContent = "Connected";
         hideSheetsUrlEditor();
-        // Sync PIN to new sheet
         syncPinToSheet(
           cfg.ownerPin ||
             "144a30d4b2dfbdba0b068dec7ed037872425ef00c59c56082c45c218e9c8f912",
         );
+        // Store URL on deployment so other instances discover it
+        callAppsScript({ action: "setSheetsUrl", sheetsUrl: newUrl }).catch(
+          () => {},
+        );
         fetchEntries();
-        // Store URL on current deployment so other instances discover it
-        callAppsScript(
-          { action: "setSheetsUrl", sheetsUrl: newUrl },
-          newUrl,
-        ).catch(() => {});
-        // Also propagate via old URL for backward compatibility
-        if (oldUrl && oldUrl !== newUrl) {
-          callAppsScript(
-            { action: "setSheetsUrl", sheetsUrl: newUrl },
-            oldUrl,
-          ).catch(() => {});
-        }
       }
 
       function toggleScriptCode() {
