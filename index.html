@@ -2399,6 +2399,8 @@ function doGet(e) {
           "144a30d4b2dfbdba0b068dec7ed037872425ef00c59c56082c45c218e9c8f912";
         cfg.ownerPin = DEF_PIN;
         localStorage.setItem("rad_cfg", JSON.stringify(cfg));
+        // Clear any previous sheet-broken flag (URL may have been updated)
+        if (cfg.sheetsUrl) localStorage.removeItem("rad_sheet_broken");
         if (cfg.sheetsUrl) syncPinToSheet(DEF_PIN);
 
         // Seed CycleSprings custom pricing example
