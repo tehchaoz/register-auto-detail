@@ -1590,28 +1590,28 @@
               "
             >
 function jsonp(data) {
-  var html = '&lt;script&gt;window.top.postMessage(' + JSON.stringify(data) + ', "*");<' + '/script>';
-  return HtmlService.createHtmlOutput(html).setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  var output = 'radCallback(' + JSON.stringify(data) + ');';
+  return ContentService.createTextOutput(output).setMimeType(ContentService.MimeType.JAVASCRIPT);
 }
 
-function doPost(e) {
+function doGet(e) {
+  var cid = 0;
   try {
-    var raw = e.parameter.data || (e.postData ? e.postData.contents : '');
-    var d = JSON.parse(raw);
-    var cid = d._callId || 0;
+    var raw = JSON.parse(e.parameter.data || '{}');
+    cid = raw._callId || 0;
 
-    if (d.action === 'setPin' && d.ownerPin) {
-      PropertiesService.getScriptProperties().setProperty('ownerPin', d.ownerPin);
+    if (raw.action === 'setPin' && raw.ownerPin) {
+      PropertiesService.getScriptProperties().setProperty('ownerPin', raw.ownerPin);
       return jsonp({status:'ok', _callId: cid});
     }
 
-    if (d.action === 'setSheetsUrl' && d.sheetsUrl) {
-      PropertiesService.getScriptProperties().setProperty('sheetsUrl', d.sheetsUrl);
+    if (raw.action === 'setSheetsUrl' && raw.sheetsUrl) {
+      PropertiesService.getScriptProperties().setProperty('sheetsUrl', raw.sheetsUrl);
       return jsonp({status:'ok', _callId: cid});
     }
 
-    if (d.action === 'updateEntry' && d.entry) {
-      var r = d.entry;
+    if (raw.action === 'updateEntry' && raw.entry) {
+      var r = raw.entry;
       var ss = getSheet();
       var sheet = ss.getSheetByName(r.dealership || 'Unknown');
       if (!sheet) return jsonp({status:'error', message:'Sheet not found', _callId: cid});
@@ -1627,7 +1627,7 @@ function doPost(e) {
       return jsonp({status:'error', message:'Entry ID not found for update', _callId: cid});
     }
 
-    if (d.action === 'deleteEntry' && d.id) {
+    if (raw.action === 'deleteEntry' && raw.id) {
       var ss = getSheet();
       var sheets = ss.getSheets();
       for (var si = 0; si < sheets.length; si++) {
@@ -1635,7 +1635,7 @@ function doPost(e) {
         if (s.getName() === 'Sheet1') continue;
         var data = s.getDataRange().getValues();
         for (var ri = 2; ri < data.length; ri++) {
-          if (data[ri][13] === d.id) {
+          if (data[ri][13] === raw.id) {
             s.deleteRow(ri + 1);
             return jsonp({status:'ok', action:'deleted', _callId: cid});
           }
@@ -1644,7 +1644,7 @@ function doPost(e) {
       return jsonp({status:'error', message:'Entry ID not found for delete', _callId: cid});
     }
 
-    if (d.action === 'clearAll') {
+    if (raw.action === 'clearAll') {
       var ss = getSheet();
       var sheets = ss.getSheets();
       for (var si = 0; si < sheets.length; si++) {
@@ -1656,63 +1656,55 @@ function doPost(e) {
       return jsonp({status:'ok', action:'cleared', _callId: cid});
     }
 
-    if (d.action === 'setDealers' && d.dealers) {
-      PropertiesService.getScriptProperties().setProperty('dealers', JSON.stringify(d.dealers));
+    if (raw.action === 'setDealers' && raw.dealers) {
+      PropertiesService.getScriptProperties().setProperty('dealers', JSON.stringify(raw.dealers));
       return jsonp({status:'ok', _callId: cid});
     }
 
-    var entries = d.entries || d;
-    var ss = getSheet();
-    if (!Array.isArray(entries)) entries = [entries];
-    if (entries.length === 0) return jsonp({status:'ok', count:0, _callId: cid});
-    var headers = ['Date','Dealership','VIN','Brand','Model','Year','Stock#','RO#','Department','Service','Price','Invoice','Notes','ID','Synced At'];
+    if (raw.entries) {
+      var entries = raw.entries;
+      var ss = getSheet();
+      if (!Array.isArray(entries)) entries = [entries];
+      if (entries.length === 0) return jsonp({status:'ok', count:0, _callId: cid});
+      var headers = ['Date','Dealership','VIN','Brand','Model','Year','Stock#','RO#','Department','Service','Price','Invoice','Notes','ID','Synced At'];
 
-    var groups = {};
-    entries.forEach(function(r) {
-      var key = r.dealership || 'Unknown';
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(r);
-    });
-
-    Object.keys(groups).forEach(function(key) {
-      var groupEntries = groups[key];
-      var sheet = ss.getSheetByName(key);
-      if (!sheet) {
-        sheet = ss.insertSheet(key);
-        var title = ['Register Auto Detail — ' + key];
-        while (title.length < headers.length) title.push('');
-        sheet.getRange(1, 1, 1, headers.length).setValues([title]);
-        sheet.getRange(1, 1, 1, headers.length).merge().setFontWeight('bold').setFontSize(14);
-        sheet.getRange(2, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
-      }
-      var lastRow = sheet.getLastRow();
-      if (lastRow < 2) {
-        var titleRow = ['Register Auto Detail — ' + key];
-        while (titleRow.length < headers.length) titleRow.push('');
-        sheet.getRange(1, 1, 1, headers.length).setValues([titleRow]);
-        sheet.getRange(1, 1, 1, headers.length).merge().setFontWeight('bold').setFontSize(14);
-        sheet.getRange(2, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
-        lastRow = 2;
-      }
-      var rows = groupEntries.map(function(r) {
-        return [r.date, r.dealership, r.vin, r.brand, r.model, r.year, r.stock, r.ro, r.department, r.service, r.price, r.invoice || '', r.notes, r.id || '', new Date().toISOString()];
+      var groups = {};
+      entries.forEach(function(r) {
+        var key = r.dealership || 'Unknown';
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(r);
       });
-      sheet.getRange(lastRow + 1, 1, rows.length, headers.length).setValues(rows);
-    });
 
-    return jsonp({status:'ok', count: entries.length, _callId: cid});
-  } catch (err) {
-    var cid = 0;
-    try { cid = JSON.parse(e.parameter.data || (e.postData ? e.postData.contents : ''))._callId || 0; } catch(ee) {}
-    return jsonp({status:'error', message: err.toString(), _callId: cid});
-  }
-}
+      Object.keys(groups).forEach(function(key) {
+        var groupEntries = groups[key];
+        var sheet = ss.getSheetByName(key);
+        if (!sheet) {
+          sheet = ss.insertSheet(key);
+          var title = ['Register Auto Detail \u2014 ' + key];
+          while (title.length < headers.length) title.push('');
+          sheet.getRange(1, 1, 1, headers.length).setValues([title]);
+          sheet.getRange(1, 1, 1, headers.length).merge().setFontWeight('bold').setFontSize(14);
+          sheet.getRange(2, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
+        }
+        var lastRow = sheet.getLastRow();
+        if (lastRow < 2) {
+          var titleRow = ['Register Auto Detail \u2014 ' + key];
+          while (titleRow.length < headers.length) titleRow.push('');
+          sheet.getRange(1, 1, 1, headers.length).setValues([titleRow]);
+          sheet.getRange(1, 1, 1, headers.length).merge().setFontWeight('bold').setFontSize(14);
+          sheet.getRange(2, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
+          lastRow = 2;
+        }
+        var rows = groupEntries.map(function(r) {
+          return [r.date, r.dealership, r.vin, r.brand, r.model, r.year, r.stock, r.ro, r.department, r.service, r.price, r.invoice || '', r.notes, r.id || '', new Date().toISOString()];
+        });
+        sheet.getRange(lastRow + 1, 1, rows.length, headers.length).setValues(rows);
+      });
 
-function doGet(e) {
-  var cid = 0;
-  try {
-    var raw = JSON.parse(e.parameter.data || '{}');
-    cid = raw._callId || 0;
+      return jsonp({status:'ok', count: entries.length, _callId: cid});
+    }
+
+    // Default: fetch entries
     var ss = getSheet();
     var sheets = ss.getSheets();
     var allEntries = [];
@@ -1937,12 +1929,6 @@ function getSheet() {
     </div>
 
     <!-- ═══ BOTTOM NAV (mobile) ═══ -->
-    <!-- hidden iframe for Apps Script cross-origin communication -->
-    <iframe
-      id="appsScriptFrame"
-      name="appsScriptFrame"
-      style="display: none"
-    ></iframe>
     <nav class="bottom-nav">
       <button
         class="nav-btn active"
@@ -2375,21 +2361,20 @@ function getSheet() {
       let selectedFilterDealers = [];
       let isOwner = false;
 
-      // ── Apps Script iframe communication (no CORS) ──
+      // ── Apps Script JSONP via script tag (no CORS) ──
       let callId = 0;
       const pending = {};
 
-      window.addEventListener("message", (e) => {
-        const d = e.data;
-        if (d && d._callId && pending[d._callId]) {
-          clearTimeout(pending[d._callId].timer);
-          if (d.status === "ok") pending[d._callId].resolve(d);
-          else pending[d._callId].reject(new Error(d.message || "Error"));
-          delete pending[d._callId];
+      window.radCallback = function (data) {
+        if (data && data._callId && pending[data._callId]) {
+          clearTimeout(pending[data._callId].timer);
+          if (data.status === "ok") pending[data._callId].resolve(data);
+          else pending[data._callId].reject(new Error(data.message || "Error"));
+          delete pending[data._callId];
         }
-      });
+      };
 
-      function callAppsScript(params, isPost, overrideUrl) {
+      function callAppsScript(params, overrideUrl) {
         return new Promise((resolve, reject) => {
           const url = overrideUrl || cfg.sheetsUrl;
           if (!url) {
@@ -2403,23 +2388,17 @@ function getSheet() {
           }, 15000);
           pending[id] = { resolve, reject, timer };
           const full = { ...params, _callId: id };
-          if (isPost) {
-            const form = document.createElement("form");
-            form.method = "POST";
-            form.action = url;
-            form.target = "appsScriptFrame";
-            form.style.display = "none";
-            const input = document.createElement("input");
-            input.name = "data";
-            input.value = JSON.stringify(full);
-            form.appendChild(input);
-            document.body.appendChild(form);
-            form.submit();
-            document.body.removeChild(form);
-          } else {
-            document.getElementById("appsScriptFrame").src =
-              url + "?data=" + encodeURIComponent(JSON.stringify(full));
-          }
+          const script = document.createElement("script");
+          script.src =
+            url + "?data=" + encodeURIComponent(JSON.stringify(full));
+          script.onerror = () => {
+            clearTimeout(timer);
+            delete pending[id];
+            reject(new Error("Script load failed"));
+          };
+          script.cleanup = setTimeout(() => script.remove(), 5000);
+          script.onload = () => clearTimeout(script.cleanup);
+          document.head.appendChild(script);
         });
       }
 
@@ -2759,7 +2738,6 @@ function getSheet() {
         if (oldUrl && oldUrl !== newUrl) {
           callAppsScript(
             { action: "setSheetsUrl", sheetsUrl: newUrl },
-            true,
             oldUrl,
           ).catch(() => {});
         }
@@ -3349,7 +3327,7 @@ function getSheet() {
       async function deleteSheetEntry(id) {
         if (!cfg.sheetsUrl) return;
         try {
-          await callAppsScript({ action: "deleteEntry", id }, true);
+          await callAppsScript({ action: "deleteEntry", id });
         } catch (err) {
           console.error("Sheet delete error:", err);
         }
@@ -3717,13 +3695,15 @@ function getSheet() {
         el.textContent = n + " pending";
       }
 
-      // ─── Google Sheets Sync (iframe, no CORS) ───
+      // ─── Google Sheets Sync (JSONP, no CORS) ───
 
       async function postEntry(e, isUpdate) {
         if (!cfg.sheetsUrl) return;
         try {
-          const payload = isUpdate ? { action: "updateEntry", entry: e } : e;
-          await callAppsScript(payload, true);
+          const payload = isUpdate
+            ? { action: "updateEntry", entry: e }
+            : { entries: [e] };
+          await callAppsScript(payload);
         } catch (err) {
           console.error("Sheet sync error:", err);
           pendingQueue.push({ entry: e, isUpdate: !!isUpdate, ts: Date.now() });
@@ -3734,7 +3714,7 @@ function getSheet() {
       async function syncToSheets(entriesArray) {
         if (!cfg.sheetsUrl || !entriesArray.length) return;
         try {
-          await callAppsScript({ entries: entriesArray }, true);
+          await callAppsScript({ entries: entriesArray });
           showToast(
             entriesArray.length +
               " entr" +
@@ -3770,8 +3750,7 @@ function getSheet() {
             await callAppsScript(
               item.isUpdate
                 ? { action: "updateEntry", entry: item.entry }
-                : item.entry,
-              true,
+                : { entries: [item.entry] },
             );
             ok++;
           } catch {
@@ -3789,7 +3768,7 @@ function getSheet() {
       async function syncPinToSheet(hash) {
         if (!cfg.sheetsUrl) return;
         try {
-          await callAppsScript({ action: "setPin", ownerPin: hash }, true);
+          await callAppsScript({ action: "setPin", ownerPin: hash });
         } catch (err) {
           console.error("PIN sync error:", err);
         }
@@ -3798,7 +3777,7 @@ function getSheet() {
       async function syncDealersToSheet() {
         if (!cfg.sheetsUrl) return;
         try {
-          await callAppsScript({ action: "setDealers", dealers }, true);
+          await callAppsScript({ action: "setDealers", dealers });
         } catch (err) {
           console.error("Dealers sync error:", err);
         }
@@ -3807,7 +3786,7 @@ function getSheet() {
       async function fetchEntries() {
         if (!cfg.sheetsUrl) return;
         try {
-          const data = await callAppsScript({ mode: "fetch" }, false);
+          const data = await callAppsScript({ mode: "fetch" });
           if (data.status !== "ok") return;
           const fetched = data.entries.map((e) => ({
             ...e,
@@ -3907,7 +3886,7 @@ function getSheet() {
         if (!confirm("Delete ALL entries? This cannot be undone.")) return;
         if (cfg.sheetsUrl) {
           try {
-            await callAppsScript({ action: "clearAll" }, true);
+            await callAppsScript({ action: "clearAll" });
           } catch (err) {
             console.error("Sheet clear error:", err);
           }
