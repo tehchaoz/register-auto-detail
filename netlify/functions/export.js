@@ -110,7 +110,7 @@ exports.handler = async function (event) {
 
     const groups = {};
     for (const e of entries) {
-      const k = `${e.dealership || "Unknown"} ${(e.date || "unknown").split("T")[0]}`;
+      const k = e.dealership || "Unknown";
       if (!groups[k]) groups[k] = [];
       groups[k].push(e);
     }
