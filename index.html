@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>RAD — Entry</title>
+    <title id="pageTitle">RAD — Entry</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
@@ -446,6 +446,27 @@
           Register Auto Detail <span>Entry</span>
         </a>
         <div style="display: flex; align-items: center; gap: 8px">
+          <button
+            class="lang-btn"
+            id="langToggle"
+            onclick="toggleLang()"
+            title="Toggle language"
+            style="
+              background: var(--surface);
+              border: 1.5px solid var(--border);
+              border-radius: var(--radius-sm);
+              color: var(--text);
+              font-size: 0.72rem;
+              font-weight: 700;
+              padding: 5px 10px;
+              cursor: pointer;
+              transition: all 0.2s;
+              text-transform: uppercase;
+              letter-spacing: 0.04em;
+            "
+          >
+            EN/SP
+          </button>
           <span class="badge" id="countBadge">0 today</span>
         </div>
       </div>
@@ -566,10 +587,10 @@
                 >Department <span class="req">*</span></label
               >
               <select id="department" name="department" required>
-                <option value="">Select...</option>
-                <option value="New Car">New Car</option>
-                <option value="Used Car">Used Car</option>
-                <option value="Service">Service</option>
+                <option value="" data-i18n="select">Select...</option>
+                <option value="New Car" data-i18n="depNew">New Car</option>
+                <option value="Used Car" data-i18n="depUsed">Used Car</option>
+                <option value="Service" data-i18n="depService">Service</option>
               </select>
             </div>
             <div class="form-group">
@@ -625,6 +646,146 @@
     </div>
 
     <script>
+      const LANG = {
+        en: {
+          pageTitle: "RAD — Entry",
+          logo: "Register Auto Detail ",
+          logoSpan: "Entry",
+          badge: " today",
+          cardToday: "Today's Entries",
+          empty: "No entries yet today.",
+          thTime: "Time",
+          thDealer: "Dealership",
+          thVin: "VIN",
+          thBrand: "Brand",
+          thModel: "Model",
+          thYear: "Year",
+          thStock: "Stock#",
+          thRo: "RO#",
+          thDept: "Dept",
+          thService: "Service",
+          cardNew: "New Entry",
+          lDate: "Date",
+          lDealer: "Dealership",
+          lVin: "VIN",
+          vinPH: "17-digit VIN",
+          vinHint: "Auto-decodes Brand, Model & Year",
+          lBrand: "Brand",
+          brandPH: "Start typing...",
+          lModel: "Model",
+          modelPH: "Start typing...",
+          lYear: "Year",
+          yearPH: "e.g. 2025",
+          lStock: "Stock #",
+          stockPH: "Stock number",
+          lRo: "RO #",
+          roPH: "Repair order #",
+          lDept: "Department",
+          lPrice: "Price",
+          pricePH: "0.00",
+          lInvoice: "Invoice #",
+          invPH: "QuickBooks #",
+          lService: "Required Service",
+          lNotes: "Notes",
+          notesPH: "Additional details...",
+          submit: "Submit Entry",
+          clear: "Clear",
+          select: "Select...",
+          selectService: "Select a service...",
+          dupConfirm: "VIN already entered today. Add anyway?",
+          saved: "Entry saved!",
+          offline: "Saved offline — will sync later.",
+          req: "Dealership and VIN required.",
+          depNew: "New Car",
+          depUsed: "Used Car",
+          depService: "Service",
+          services: [
+            "Full Detail - Car",
+            "Full Detail - SUV",
+            "Full Detail - Truck",
+            "Express Detail",
+            "Service Wash",
+            "Paint Correction",
+            "Ceramic Coating",
+            "Interior Shampoo",
+            "Headlight Restoration",
+            "Odor Removal",
+            "Wheel & Tire Detail",
+            "Engine Bay Cleaning",
+            "Other",
+          ],
+        },
+        sp: {
+          pageTitle: "RAD — Entrada",
+          logo: "Registro Auto Detalle ",
+          logoSpan: "Entrada",
+          badge: " hoy",
+          cardToday: "Entradas de Hoy",
+          empty: "No hay entradas hoy.",
+          thTime: "Hora",
+          thDealer: "Concesionario",
+          thVin: "VIN",
+          thBrand: "Marca",
+          thModel: "Modelo",
+          thYear: "Año",
+          thStock: "Stock#",
+          thRo: "OT#",
+          thDept: "Depto",
+          thService: "Servicio",
+          cardNew: "Nueva Entrada",
+          lDate: "Fecha",
+          lDealer: "Concesionario",
+          lVin: "VIN",
+          vinPH: "VIN de 17 dígitos",
+          vinHint: "Decodifica Marca, Modelo y Año",
+          lBrand: "Marca",
+          brandPH: "Empiece a escribir...",
+          lModel: "Modelo",
+          modelPH: "Empiece a escribir...",
+          lYear: "Año",
+          yearPH: "ej. 2025",
+          lStock: "Stock #",
+          stockPH: "Número de stock",
+          lRo: "OT #",
+          roPH: "Orden de reparación #",
+          lDept: "Departamento",
+          lPrice: "Precio",
+          pricePH: "0.00",
+          lInvoice: "Factura #",
+          invPH: "QuickBooks #",
+          lService: "Servicio Requerido",
+          lNotes: "Notas",
+          notesPH: "Detalles adicionales...",
+          submit: "Enviar Entrada",
+          clear: "Limpiar",
+          select: "Seleccione...",
+          selectService: "Seleccione un servicio...",
+          dupConfirm: "VIN ya ingresado hoy. ¿Agregar de todas formas?",
+          saved: "¡Entrada guardada!",
+          offline: "Guardado sin conexión — se sincronizará después.",
+          req: "Se requiere concesionario y VIN.",
+          depNew: "Auto Nuevo",
+          depUsed: "Auto Usado",
+          depService: "Servicio",
+          services: [
+            "Detalle Completo - Auto",
+            "Detalle Completo - SUV",
+            "Detalle Completo - Camioneta",
+            "Detalle Express",
+            "Lavado de Servicio",
+            "Corrección de Pintura",
+            "Revestimiento Cerámico",
+            "Limpieza de Interiores",
+            "Restauración de Faros",
+            "Eliminación de Olores",
+            "Detalle de Llantas",
+            "Limpieza de Motor",
+            "Otro",
+          ],
+        },
+      };
+      let lang = localStorage.getItem("rad_lang") || "en";
+
       const API = "/.netlify/functions/entries";
       let entries = [];
       let cfg = { favDealer: "" };
@@ -670,7 +831,7 @@
           String(today.getDate()).padStart(2, "0");
         const todayEntries = entries.filter((e) => e.date === todayStr);
         document.getElementById("countBadge").textContent =
-          todayEntries.length + " today";
+          todayEntries.length + LANG[lang].badge;
         const tbody = document.getElementById("entriesBody");
         const table = document.getElementById("entriesTable");
         const empty = document.getElementById("emptyState");
@@ -731,31 +892,21 @@
           notes: f.notes.value,
         };
         if (!data.dealership || !data.vin)
-          return showToast("Dealership and VIN required.", "error");
+          return showToast(LANG[lang].req, "error");
         try {
           const check = await call("GET", { vin: data.vin, date: data.date });
-          if (
-            check.exists &&
-            !confirm(
-              "VIN " +
-                data.vin +
-                " already entered today (" +
-                data.date +
-                "). Add anyway?",
-            )
-          )
-            return;
+          if (check.exists && !confirm(LANG[lang].dupConfirm)) return;
         } catch {
           /* offline, skip duplicate check */
         }
         try {
           await call("POST", data);
-          showToast("Entry saved!", "success");
+          showToast(LANG[lang].saved, "success");
           f.reset();
           setDefaultDate();
           await loadEntries();
+          applyLang();
         } catch (err) {
-          // Save locally for later sync
           entries.push({
             ...data,
             id: "local-" + Date.now(),
@@ -763,7 +914,8 @@
           });
           localStorage.setItem("rad_entries", JSON.stringify(entries));
           renderToday();
-          showToast("Saved offline — will sync later.", "info");
+          applyLang();
+          showToast(LANG[lang].offline, "info");
         }
       }
 
@@ -778,11 +930,12 @@
         setTimeout(() => t.remove(), 3000);
       }
 
-      // populate dealers
       function populateDealers() {
         const sel = document.getElementById("dealership");
         sel.innerHTML =
-          "<option value=''>Select...</option>" +
+          "<option value=''>" +
+          LANG[lang].select +
+          "</option>" +
           dealers
             .map(
               (d) => "<option value='" + esc(d) + "'>" + esc(d) + "</option>",
@@ -790,29 +943,17 @@
             .join("");
       }
 
-      // services
-      const SERVICES = [
-        "Full Detail - Car",
-        "Full Detail - SUV",
-        "Full Detail - Truck",
-        "Express Detail",
-        "Service Wash",
-        "Paint Correction",
-        "Ceramic Coating",
-        "Interior Shampoo",
-        "Headlight Restoration",
-        "Odor Removal",
-        "Wheel & Tire Detail",
-        "Engine Bay Cleaning",
-        "Other",
-      ];
       function populateServices() {
         const sel = document.getElementById("service");
         sel.innerHTML =
-          "<option value=''>Select a service...</option>" +
-          SERVICES.map(
-            (s) => "<option value='" + esc(s) + "'>" + esc(s) + "</option>",
-          ).join("");
+          "<option value=''>" +
+          LANG[lang].selectService +
+          "</option>" +
+          LANG[lang].services
+            .map(
+              (s) => "<option value='" + esc(s) + "'>" + esc(s) + "</option>",
+            )
+            .join("");
       }
 
       // VIN auto-fill Stock#
@@ -860,11 +1001,206 @@
         s.style.display = "none";
       }
 
+      function toggleLang() {
+        lang = lang === "en" ? "sp" : "en";
+        localStorage.setItem("rad_lang", lang);
+        applyLang();
+      }
+
+      function applyLang() {
+        const t = LANG[lang];
+        document.getElementById("pageTitle").textContent = t.pageTitle;
+        document.getElementById("langToggle").textContent =
+          lang === "en" ? "EN/SP" : "SP/EN";
+        const logo = document.querySelector(".logo");
+        if (logo)
+          logo.innerHTML = `<div class="logo-icon">R</div> ${t.logo}<span>${t.logoSpan}</span>`;
+        document.getElementById("countBadge").textContent =
+          entries.filter(
+            (e) => e.date === new Date().toISOString().slice(0, 10),
+          ).length + t.badge;
+        document.querySelector(".card-title").textContent = t.cardToday;
+        document
+          .querySelectorAll(".card")[1]
+          .querySelector(".card-title").textContent = t.cardNew;
+        document.querySelector("#emptyState p").textContent = t.empty;
+        const ths = document.querySelectorAll("#entriesTable thead th");
+        const thLabels = [
+          t.thTime,
+          t.thDealer,
+          t.thVin,
+          t.thBrand,
+          t.thModel,
+          t.thYear,
+          t.thStock,
+          t.thRo,
+          t.thDept,
+          t.thService,
+        ];
+        ths.forEach((th, i) => {
+          if (thLabels[i]) th.textContent = thLabels[i];
+        });
+        const labels = document.querySelectorAll("label");
+        const labelMap = {
+          date: t.lDate,
+          dealership: t.lDealer,
+          vin: t.lVin,
+          brand: t.lBrand,
+          model: t.lModel,
+          year: t.lYear,
+          stock: t.lStock,
+          ro: t.lRo,
+          department: t.lDept,
+          price: t.lPrice,
+          invoice: t.lInvoice,
+          service: t.lService,
+          notes: t.lNotes,
+        };
+        labels.forEach((l) => {
+          const f = l.getAttribute("for");
+          if (f && labelMap[f])
+            l.innerHTML =
+              labelMap[f] +
+              ([
+                "dealership",
+                "brand",
+                "model",
+                "year",
+                "stock",
+                "department",
+                "price",
+                "service",
+              ].includes(f)
+                ? ' <span class="req">*</span>'
+                : "");
+        });
+        const ph = {
+          vin: t.vinPH,
+          brand: t.brandPH,
+          model: t.modelPH,
+          year: t.yearPH,
+          stock: t.stockPH,
+          ro: t.roPH,
+          price: t.pricePH,
+          invoice: t.invPH,
+          notes: t.notesPH,
+        };
+        Object.keys(ph).forEach((k) => {
+          const el = document.getElementById(k);
+          if (el) el.placeholder = ph[k];
+        });
+        document.querySelector("#entryForm .btn-primary").textContent =
+          t.submit;
+        document.querySelector("#entryForm .btn-secondary").textContent =
+          t.clear;
+        populateDealers();
+        populateServices();
+        // department select
+        const depOpts = document.querySelectorAll("#department option");
+        const depKeys = ["select", "depNew", "depUsed", "depService"];
+        depOpts.forEach((o, i) => {
+          if (depKeys[i]) o.textContent = t[depKeys[i]];
+        });
+        document.getElementById("langToggle").textContent =
+          lang === "en" ? "EN/SP" : "SP/EN";
+      }
+
+      // Test seed data
+      async function seedTestEntries() {
+        const test = [
+          {
+            date: new Date().toISOString().slice(0, 10),
+            dealership: "Ed Morse Cadillac - Tampa",
+            vin: "1G1YS3D66K5800001",
+            brand: "Chevrolet",
+            model: "Corvette",
+            year: "2025",
+            stock: "C25001",
+            ro: "RO001",
+            department: "New Car",
+            service: "Full Detail - Car",
+            price: 399.99,
+            invoice: "INV001",
+            notes: "New inventory detail",
+          },
+          {
+            date: new Date().toISOString().slice(0, 10),
+            dealership: "Ed Morse Cadillac - Brandon",
+            vin: "2C4RC1BG3LR000002",
+            brand: "Chrysler",
+            model: "Pacifica",
+            year: "2024",
+            stock: "P24002",
+            ro: "RO002",
+            department: "Used Car",
+            service: "Full Detail - SUV",
+            price: 549.99,
+            invoice: "INV002",
+            notes: "CPO detail",
+          },
+          {
+            date: new Date().toISOString().slice(0, 10),
+            dealership: "Ed Morse Cadillac - Tampa",
+            vin: "1FA6P8TH3MZ000003",
+            brand: "Ford",
+            model: "Mustang",
+            year: "2025",
+            stock: "M25003",
+            ro: "RO003",
+            department: "Service",
+            service: "Express Detail",
+            price: 199.99,
+            invoice: "",
+            notes: "Customer express",
+          },
+          {
+            date: new Date().toISOString().slice(0, 10),
+            dealership: "Ed Morse Cadillac - Brandon",
+            vin: "3GNAXUEV5ML000004",
+            brand: "Chevrolet",
+            model: "Equinox",
+            year: "2024",
+            stock: "E24004",
+            ro: "RO004",
+            department: "New Car",
+            service: "Ceramic Coating",
+            price: 1299.99,
+            invoice: "INV004",
+            notes: "New car ceramic coating",
+          },
+          {
+            date: new Date().toISOString().slice(0, 10),
+            dealership: "Ed Morse Cadillac - Tampa",
+            vin: "1HGCV1F35KA000005",
+            brand: "Honda",
+            model: "Accord",
+            year: "2023",
+            stock: "A23005",
+            ro: "RO005",
+            department: "Used Car",
+            service: "Paint Correction",
+            price: 899.99,
+            invoice: "INV005",
+            notes: "Paint correction before sale",
+          },
+        ];
+        for (const e of test) {
+          try {
+            await call("POST", e);
+          } catch {}
+        }
+        await loadEntries();
+        applyLang();
+      }
+
       // init
       setDefaultDate();
       populateDealers();
       populateServices();
-      loadEntries();
+      loadEntries().then(() => {
+        if (entries.length === 0) seedTestEntries();
+        applyLang();
+      });
       document.getElementById("entryForm").addEventListener("keydown", (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
           e.preventDefault();

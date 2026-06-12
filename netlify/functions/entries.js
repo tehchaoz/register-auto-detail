@@ -28,7 +28,7 @@ exports.handler = async function (event, context) {
   if (event.httpMethod === "OPTIONS")
     return { statusCode: 204, headers: H, body: "" };
 
-  const store = getStore({ name: "rad", siteID: process.env.SITE_ID });
+  const store = getStore("rad");
 
   try {
     const url = new URL(

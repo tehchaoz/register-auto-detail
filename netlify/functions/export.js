@@ -101,7 +101,7 @@ exports.handler = async function (event) {
 
   if (!SID || !SA_EMAIL || !SA_KEY) return fail("Export not configured");
 
-  const store = getStore({ name: "rad" });
+  const store = getStore("rad");
 
   try {
     const raw = await store.get("entries");
