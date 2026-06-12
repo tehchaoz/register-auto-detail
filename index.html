@@ -42,6 +42,7 @@
         --radius-lg: 16px;
         --shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
         --font: "Inter", -apple-system, sans-serif;
+        --tab-h: 48px;
       }
       html {
         font-size: 16px;
@@ -95,6 +96,7 @@
         font-size: 1.1rem;
         color: var(--text);
         text-decoration: none;
+        cursor: default;
       }
       .logo-icon {
         width: 32px;
@@ -119,6 +121,58 @@
         padding: 2px 10px;
         border-radius: 20px;
         white-space: nowrap;
+      }
+      .tab-bar {
+        display: flex;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 57px;
+        z-index: 99;
+      }
+      .tab-bar .container {
+        display: flex;
+        gap: 0;
+        width: 100%;
+      }
+      .tab {
+        flex: 1;
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-family: var(--font);
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding: 12px 0;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s;
+      }
+      .tab:hover {
+        color: var(--text);
+      }
+      .tab.active {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+      }
+      .section {
+        display: none;
+        animation: fadeIn 0.2s ease;
+      }
+      .section.active {
+        display: block;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
       .card {
         background: var(--card);
@@ -234,6 +288,13 @@
         background: var(--card-hover);
         border-color: var(--text-muted);
       }
+      .btn-gold {
+        background: linear-gradient(135deg, var(--gold), #b8943f);
+        color: #fff;
+      }
+      .btn-gold:hover {
+        box-shadow: 0 4px 20px rgba(212, 168, 83, 0.35);
+      }
       .btn-sm {
         font-size: 0.8rem;
         padding: 8px 14px;
@@ -291,6 +352,18 @@
         font-size: 2.5rem;
         margin-bottom: 8px;
         opacity: 0.5;
+      }
+      .svc-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--accent-dim);
+        color: var(--accent);
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 3px 10px;
+        border-radius: 20px;
+        white-space: nowrap;
       }
       .toast {
         position: fixed;
@@ -409,8 +482,109 @@
       .text-muted {
         color: var(--text-muted);
       }
-      .dup-row td {
-        background: rgba(212, 168, 83, 0.08) !important;
+      .flex {
+        display: flex;
+      }
+      .flex-between {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .gap-8 {
+        gap: 8px;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+      .stat {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 14px 16px;
+        text-align: center;
+      }
+      .stat-val {
+        font-size: 1.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--accent), var(--gold));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .stat-lbl {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-top: 2px;
+      }
+      .dealer-add-row {
+        display: flex;
+        gap: 6px;
+        margin-top: 6px;
+      }
+      .dealer-add-row input {
+        flex: 1;
+        font-family: var(--font);
+        font-size: 0.85rem;
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-sm);
+        color: var(--text);
+        padding: 8px 12px;
+        outline: none;
+      }
+      .dealer-add-row input:focus {
+        border-color: var(--accent);
+      }
+      .dealer-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: var(--accent-dim);
+        color: var(--accent);
+        font-size: 0.75rem;
+        font-weight: 500;
+        padding: 3px 10px;
+        border-radius: 20px;
+      }
+      .dealer-tag .del {
+        cursor: pointer;
+        opacity: 0.5;
+        font-size: 0.85rem;
+        line-height: 1;
+        margin-left: 2px;
+      }
+      .dealer-tag .del:hover {
+        opacity: 1;
+      }
+      .filter-bar {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+      }
+      .filter-bar input,
+      .filter-bar select {
+        font-family: var(--font);
+        font-size: 0.85rem;
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-sm);
+        color: var(--text);
+        padding: 8px 12px;
+        outline: none;
+      }
+      .filter-bar input:focus,
+      .filter-bar select:focus {
+        border-color: var(--accent);
+      }
+      .filter-bar .btn {
+        min-height: 36px;
+        padding: 8px 14px;
       }
       @media print {
         body {
@@ -419,8 +593,10 @@
           padding: 0;
         }
         .header,
+        .tab-bar,
         .btn,
-        .submit-bar {
+        .submit-bar,
+        .filter-bar {
           display: none !important;
         }
         .card {
@@ -441,10 +617,12 @@
     <!-- ═══ HEADER ═══ -->
     <header class="header">
       <div class="container">
-        <a class="logo" href="/">
+        <div class="logo">
           <div class="logo-icon">R</div>
-          Register Auto Detail <span>Entry</span>
-        </a>
+          <span id="logoText"
+            >Register Auto Detail <span id="logoSpan">Entry</span></span
+          >
+        </div>
         <div style="display: flex; align-items: center; gap: 8px">
           <button
             class="lang-btn"
@@ -472,188 +650,342 @@
       </div>
     </header>
 
+    <!-- ═══ TABS ═══ -->
+    <nav class="tab-bar">
+      <div class="container">
+        <button
+          class="tab active"
+          data-tab="log"
+          onclick="switchTab('log')"
+          id="tabLog"
+        >
+          Log
+        </button>
+        <button
+          class="tab"
+          data-tab="history"
+          onclick="switchTab('history')"
+          id="tabHistory"
+        >
+          History
+        </button>
+      </div>
+    </nav>
+
     <div class="container" style="padding-top: 16px">
-      <!-- ═══ TODAY'S ENTRIES ═══ -->
-      <div class="card">
-        <div class="card-title">Today's Entries</div>
-        <div class="table-wrap" id="entriesWrap">
-          <div class="empty-state" id="emptyState">
-            <div class="empty-icon">📋</div>
-            <p>No entries yet today.</p>
-          </div>
-          <table id="entriesTable" style="display: none">
-            <thead>
-              <tr>
-                <th>Time</th>
-                <th>Dealership</th>
-                <th>VIN</th>
-                <th>Brand</th>
-                <th>Model</th>
-                <th>Year</th>
-                <th>Stock#</th>
-                <th>RO#</th>
-                <th>Dept</th>
-                <th>Service</th>
-              </tr>
-            </thead>
-            <tbody id="entriesBody"></tbody>
-          </table>
+      <!-- ═══ TAB: LOG ═══ -->
+      <div class="section active" id="view-log">
+        <!-- Entry Form -->
+        <div class="card">
+          <div class="card-title" id="cardNew">New Entry</div>
+          <form id="entryForm" onsubmit="handleSubmit(event)">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="date">Date</label>
+                <input type="date" id="date" name="date" required />
+              </div>
+              <div class="form-group">
+                <label for="dealership"
+                  >Dealership <span class="req">*</span></label
+                >
+                <div style="display: flex; gap: 6px; align-items: stretch">
+                  <select
+                    id="dealership"
+                    name="dealership"
+                    required
+                    onchange="onDealerChange()"
+                    style="flex: 1"
+                  ></select>
+                  <span
+                    onclick="toggleFav()"
+                    style="
+                      cursor: pointer;
+                      font-size: 1.4rem;
+                      color: var(--gold);
+                      display: flex;
+                      align-items: center;
+                      padding: 0 6px;
+                      user-select: none;
+                    "
+                    id="favStarDropdown"
+                    title="Set as default dealership"
+                    >☆</span
+                  >
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="vin">VIN</label>
+                <div class="vin-wrap">
+                  <input
+                    type="text"
+                    id="vin"
+                    name="vin"
+                    placeholder="17-digit VIN"
+                    autocomplete="off"
+                  />
+                  <div class="vin-spinner" id="vinSpinner"></div>
+                </div>
+                <div class="field-hint" id="vinHint">
+                  Auto-decodes Brand, Model & Year
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="brand">Brand <span class="req">*</span></label>
+                <input
+                  type="text"
+                  id="brand"
+                  name="brand"
+                  placeholder="Start typing..."
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="model">Model <span class="req">*</span></label>
+                <input
+                  type="text"
+                  id="model"
+                  name="model"
+                  placeholder="Start typing..."
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="year">Year <span class="req">*</span></label>
+                <input
+                  type="text"
+                  id="year"
+                  name="year"
+                  placeholder="e.g. 2025"
+                  inputmode="numeric"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="stock">Stock # <span class="req">*</span></label>
+                <input
+                  type="text"
+                  id="stock"
+                  name="stock"
+                  placeholder="Stock number"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="ro">RO #</label>
+                <input
+                  type="text"
+                  id="ro"
+                  name="ro"
+                  placeholder="Repair order #"
+                />
+              </div>
+              <div class="form-group">
+                <label for="department"
+                  >Department <span class="req">*</span></label
+                >
+                <select id="department" name="department" required>
+                  <option value="" data-i18n="select">Select...</option>
+                  <option value="New Car" data-i18n="depNew">New Car</option>
+                  <option value="Used Car" data-i18n="depUsed">Used Car</option>
+                  <option value="Service" data-i18n="depService">
+                    Service
+                  </option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="invoice">Invoice #</label>
+                <input
+                  type="text"
+                  id="invoice"
+                  name="invoice"
+                  placeholder="QuickBooks #"
+                />
+              </div>
+              <div class="form-group full">
+                <label for="service"
+                  >Required Service <span class="req">*</span></label
+                >
+                <select id="service" name="service" required></select>
+              </div>
+              <div class="form-group full">
+                <button
+                  type="button"
+                  class="btn btn-sm btn-gold"
+                  onclick="openWashModal()"
+                  id="washBtn"
+                >
+                  + Service Wash
+                </button>
+              </div>
+              <div class="form-group full">
+                <label for="notes">Notes</label>
+                <textarea
+                  id="notes"
+                  name="notes"
+                  placeholder="Additional details..."
+                ></textarea>
+              </div>
+            </div>
+            <div class="submit-bar">
+              <button type="submit" class="btn btn-primary" id="submitBtn">
+                Submit Entry
+              </button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                onclick="resetForm()"
+                id="clearBtn"
+              >
+                Clear
+              </button>
+            </div>
+          </form>
         </div>
       </div>
 
-      <!-- ═══ ENTRY FORM ═══ -->
-      <div class="card">
-        <div class="card-title">New Entry</div>
-        <form id="entryForm" onsubmit="handleSubmit(event)">
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="date">Date</label>
-              <input type="date" id="date" name="date" required />
-            </div>
-            <div class="form-group">
-              <label for="dealership"
-                >Dealership <span class="req">*</span></label
-              >
-              <select id="dealership" name="dealership" required>
-                <option value="">Select...</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="vin">VIN</label>
-              <div class="vin-wrap">
-                <input
-                  type="text"
-                  id="vin"
-                  name="vin"
-                  placeholder="17-digit VIN"
-                  autocomplete="off"
-                />
-                <div class="vin-spinner" id="vinSpinner"></div>
-              </div>
-              <div class="field-hint">Auto-decodes Brand, Model & Year</div>
-            </div>
-            <div class="form-group">
-              <label for="brand">Brand <span class="req">*</span></label>
-              <input
-                type="text"
-                id="brand"
-                name="brand"
-                placeholder="Start typing..."
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label for="model">Model <span class="req">*</span></label>
-              <input
-                type="text"
-                id="model"
-                name="model"
-                placeholder="Start typing..."
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label for="year">Year <span class="req">*</span></label>
-              <input
-                type="text"
-                id="year"
-                name="year"
-                placeholder="e.g. 2025"
-                inputmode="numeric"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label for="stock">Stock # <span class="req">*</span></label>
-              <input
-                type="text"
-                id="stock"
-                name="stock"
-                placeholder="Stock number"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label for="ro">RO #</label>
-              <input
-                type="text"
-                id="ro"
-                name="ro"
-                placeholder="Repair order #"
-              />
-            </div>
-            <div class="form-group">
-              <label for="department"
-                >Department <span class="req">*</span></label
-              >
-              <select id="department" name="department" required>
-                <option value="" data-i18n="select">Select...</option>
-                <option value="New Car" data-i18n="depNew">New Car</option>
-                <option value="Used Car" data-i18n="depUsed">Used Car</option>
-                <option value="Service" data-i18n="depService">Service</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="price">Price <span class="req">*</span></label>
-              <input
-                type="number"
-                id="price"
-                name="price"
-                step="0.01"
-                min="0"
-                placeholder="0.00"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label for="invoice">Invoice #</label>
-              <input
-                type="text"
-                id="invoice"
-                name="invoice"
-                placeholder="QuickBooks #"
-              />
-            </div>
-            <div class="form-group full">
-              <label for="service"
-                >Required Service <span class="req">*</span></label
-              >
-              <select id="service" name="service" required>
-                <option value="">Select a service...</option>
-              </select>
-            </div>
-            <div class="form-group full">
-              <label for="notes">Notes</label>
-              <textarea
-                id="notes"
-                name="notes"
-                placeholder="Additional details..."
-              ></textarea>
+      <!-- ═══ TAB: HISTORY ═══ -->
+      <div class="section" id="view-history">
+        <div class="card">
+          <div class="flex-between">
+            <div class="card-title" style="margin-bottom: 0" id="cardHistory">
+              All Entries
             </div>
           </div>
-          <div class="submit-bar">
-            <button type="submit" class="btn btn-primary">Submit Entry</button>
+        </div>
+
+        <div class="card">
+          <div class="filter-bar">
+            <input type="date" id="filterDate" onchange="renderHistory()" />
+            <select id="filterDealer" onchange="renderHistory()">
+              <option value="">All</option>
+            </select>
+            <input
+              type="text"
+              id="filterVin"
+              placeholder="VIN..."
+              oninput="renderHistory()"
+              style="min-width: 100px"
+            />
             <button
-              type="button"
-              class="btn btn-secondary"
-              onclick="resetForm()"
+              class="btn btn-sm btn-secondary"
+              onclick="exportCSV()"
+              id="exportBtn"
             >
-              Clear
+              Export
             </button>
           </div>
-        </form>
+          <div class="stats" id="statsBar"></div>
+          <div class="table-wrap">
+            <div class="empty-state" id="emptyState">
+              <div class="empty-icon">📋</div>
+              <p id="emptyText">No entries yet.</p>
+            </div>
+            <table id="entriesTable" style="display: none">
+              <thead>
+                <tr>
+                  <th id="thDate">Date</th>
+                  <th id="thTime">Time</th>
+                  <th id="thDealer">Dealership</th>
+                  <th id="thVin">VIN</th>
+                  <th id="thBrand">Brand</th>
+                  <th id="thModel">Model</th>
+                  <th id="thYear">Year</th>
+                  <th id="thStock">Stock#</th>
+                  <th id="thService">Service</th>
+                </tr>
+              </thead>
+              <tbody id="entriesBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SERVICE WASH MODAL ═══ -->
+    <div
+      class="modal-overlay"
+      id="washModal"
+      onclick="if(event.target===this)closeWashModal()"
+    >
+      <div class="modal">
+        <div class="modal-title" id="washTitle">Add Service Washes</div>
+        <div class="form-group">
+          <label for="washDealer" id="washDealerLabel">Dealership</label>
+          <select id="washDealer">
+            <option value="">Select...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="washCount" id="washCountLabel">Number of Washes</label>
+          <input type="number" id="washCount" value="1" min="1" max="200" />
+        </div>
+        <div class="btn-group">
+          <button
+            class="btn btn-sm btn-primary"
+            onclick="submitQuickWash()"
+            id="washAddBtn"
+          >
+            Add
+          </button>
+          <button
+            class="btn btn-sm btn-secondary"
+            onclick="closeWashModal()"
+            id="washCancelBtn"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
 
     <script>
+      // ══════════════════════════════════════════════
+      //  REGISTER AUTO DETAIL — ENTRY
+      // ══════════════════════════════════════════════
+
+      // ── Service → Price Map ──
+      const S = {
+        "PDI w/Plastic": 145,
+        Delivery: 25,
+        "Service Detail": 175,
+        "UCR w/Plastic": 175,
+        "RFL w/Plastic": 45,
+        "Delivery + XZillion": 75,
+        "Lot Prep": 145,
+        "Loaner Reclean": 145,
+        "New Car Reclean": 145,
+        "Auction Clean": 50,
+        Ceramic: 1000,
+        Reclean: 45,
+        "Showroom - New Car": 145,
+        "Showroom - Used Car": 170,
+        "Service Wash": 10,
+        "WPaint & Fabric Protection - Car": 179,
+        "WPaint & Fabric Protection - SUV": 229,
+        "WPaint & Fabric Protection - Truck": 279,
+        "Jet Ski": 75,
+        Motorcycle: 85,
+      };
+
+      function getPrice(svc, dealer) {
+        return cfg.dealerPrices?.[dealer]?.[svc] ?? S[svc];
+      }
+
+      // ── LANG ──
       const LANG = {
         en: {
           pageTitle: "RAD — Entry",
-          logo: "Register Auto Detail ",
+          logo: "Register Auto Detail",
           logoSpan: "Entry",
           badge: " today",
-          cardToday: "Today's Entries",
-          empty: "No entries yet today.",
+          tabLog: "Log",
+          tabHistory: "History",
+          cardNew: "New Entry",
+          cardHistory: "All Entries",
+          cardDealers: "Dealerships",
+          empty: "No entries yet.",
+          emptyHist: "No entries match filters.",
+          thDate: "Date",
           thTime: "Time",
           thDealer: "Dealership",
           thVin: "VIN",
@@ -661,10 +993,7 @@
           thModel: "Model",
           thYear: "Year",
           thStock: "Stock#",
-          thRo: "RO#",
-          thDept: "Dept",
           thService: "Service",
-          cardNew: "New Entry",
           lDate: "Date",
           lDealer: "Dealership",
           lVin: "VIN",
@@ -681,47 +1010,52 @@
           lRo: "RO #",
           roPH: "Repair order #",
           lDept: "Department",
-          lPrice: "Price",
-          pricePH: "0.00",
+          lService: "Required Service",
+          servicePH: "Select a service...",
           lInvoice: "Invoice #",
           invPH: "QuickBooks #",
-          lService: "Required Service",
           lNotes: "Notes",
           notesPH: "Additional details...",
           submit: "Submit Entry",
           clear: "Clear",
           select: "Select...",
-          selectService: "Select a service...",
-          dupConfirm: "VIN already entered today. Add anyway?",
-          saved: "Entry saved!",
-          offline: "Saved offline — will sync later.",
-          req: "Dealership and VIN required.",
           depNew: "New Car",
           depUsed: "Used Car",
           depService: "Service",
-          services: [
-            "Full Detail - Car",
-            "Full Detail - SUV",
-            "Full Detail - Truck",
-            "Express Detail",
-            "Service Wash",
-            "Paint Correction",
-            "Ceramic Coating",
-            "Interior Shampoo",
-            "Headlight Restoration",
-            "Odor Removal",
-            "Wheel & Tire Detail",
-            "Engine Bay Cleaning",
-            "Other",
-          ],
+          wash: "+ Service Wash",
+          washTitle: "Add Service Washes",
+          washDealer: "Dealership",
+          washCount: "Number of Washes",
+          washAdd: "Add",
+          washCancel: "Cancel",
+          dealerPH: "Add dealership...",
+          dealerAdd: "Add",
+          dealerModalTitle: "Add Dealership",
+          dealerModalLabel: "Dealership Name",
+          dealerModalAdd: "Add",
+          dealerModalCancel: "Cancel",
+          dupConfirm: "VIN already entered today. Add anyway?",
+          saved: "Entry saved!",
+          offline: "Saved offline — will sync later.",
+          req: "Please fill in all required fields.",
+          noDealer: "Select a dealership.",
+          noSvc: "Select a service.",
+          exportBtn: "Export",
+          washAdded: "wash(es) added for",
         },
         sp: {
           pageTitle: "RAD — Entrada",
-          logo: "Registro Auto Detalle ",
+          logo: "Registro Auto Detalle",
           logoSpan: "Entrada",
           badge: " hoy",
-          cardToday: "Entradas de Hoy",
+          tabLog: "Registro",
+          tabHistory: "Historial",
+          cardNew: "Nueva Entrada",
+          cardHistory: "Todas las Entradas",
+          cardDealers: "Concesionarios",
           empty: "No hay entradas hoy.",
+          emptyHist: "Sin resultados.",
+          thDate: "Fecha",
           thTime: "Hora",
           thDealer: "Concesionario",
           thVin: "VIN",
@@ -729,10 +1063,7 @@
           thModel: "Modelo",
           thYear: "Año",
           thStock: "Stock#",
-          thRo: "OT#",
-          thDept: "Depto",
           thService: "Servicio",
-          cardNew: "Nueva Entrada",
           lDate: "Fecha",
           lDealer: "Concesionario",
           lVin: "VIN",
@@ -749,51 +1080,130 @@
           lRo: "OT #",
           roPH: "Orden de reparación #",
           lDept: "Departamento",
-          lPrice: "Precio",
-          pricePH: "0.00",
+          lService: "Servicio Requerido",
+          servicePH: "Seleccione un servicio...",
           lInvoice: "Factura #",
           invPH: "QuickBooks #",
-          lService: "Servicio Requerido",
           lNotes: "Notas",
           notesPH: "Detalles adicionales...",
           submit: "Enviar Entrada",
           clear: "Limpiar",
           select: "Seleccione...",
-          selectService: "Seleccione un servicio...",
-          dupConfirm: "VIN ya ingresado hoy. ¿Agregar de todas formas?",
-          saved: "¡Entrada guardada!",
-          offline: "Guardado sin conexión — se sincronizará después.",
-          req: "Se requiere concesionario y VIN.",
           depNew: "Auto Nuevo",
           depUsed: "Auto Usado",
           depService: "Servicio",
-          services: [
-            "Detalle Completo - Auto",
-            "Detalle Completo - SUV",
-            "Detalle Completo - Camioneta",
-            "Detalle Express",
-            "Lavado de Servicio",
-            "Corrección de Pintura",
-            "Revestimiento Cerámico",
-            "Limpieza de Interiores",
-            "Restauración de Faros",
-            "Eliminación de Olores",
-            "Detalle de Llantas",
-            "Limpieza de Motor",
-            "Otro",
-          ],
+          wash: "+ Lavado",
+          washTitle: "Agregar Lavados",
+          washDealer: "Concesionario",
+          washCount: "Cantidad de Lavados",
+          washAdd: "Agregar",
+          washCancel: "Cancelar",
+          dealerPH: "Agregar concesionario...",
+          dealerAdd: "Agregar",
+          dealerModalTitle: "Agregar Concesionario",
+          dealerModalLabel: "Nombre del Concesionario",
+          dealerModalAdd: "Agregar",
+          dealerModalCancel: "Cancelar",
+          dupConfirm: "VIN ya ingresado hoy. ¿Agregar de todas formas?",
+          saved: "¡Entrada guardada!",
+          offline: "Guardado sin conexión — se sincronizará después.",
+          req: "Complete todos los campos requeridos.",
+          noDealer: "Seleccione un concesionario.",
+          noSvc: "Seleccione un servicio.",
+          exportBtn: "Exportar",
+          washAdded: "lavado(s) agregado(s) para",
         },
       };
-      let lang = localStorage.getItem("rad_lang") || "en";
 
+      // ── State ──
+      let lang = localStorage.getItem("rad_lang") || "en";
       const API = "/.netlify/functions/entries";
       let entries = [];
-      let cfg = { favDealer: "" };
-      let dealers = [
-        "Ed Morse Cadillac - Tampa",
-        "Ed Morse Cadillac - Brandon",
-      ];
+      let cfg = { dealerPrices: {}, favDealer: "" };
+      let dealers = [];
+      const PRESETS = ["Mobile Detail", "CycleSprings"];
 
+      // ── Init ──
+      loadState();
+      setDefaultDate();
+      populateDealers();
+      populateServices();
+      renderHistory();
+      applyLang();
+      loadEntries();
+
+      document.getElementById("entryForm").addEventListener("keydown", (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+          e.preventDefault();
+          document.getElementById("entryForm").requestSubmit();
+        }
+      });
+
+      let vinTimer;
+      document
+        .getElementById("vin")
+        .addEventListener("paste", () => setTimeout(fillStockFromVin, 50));
+      document.getElementById("vin").addEventListener("input", () => {
+        clearTimeout(vinTimer);
+        fillStockFromVin();
+        const v = document.getElementById("vin").value.trim();
+        if (v.length === 17)
+          vinTimer = setTimeout(() => decodeVin(v.toUpperCase()), 600);
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeWashModal();
+      });
+
+      // ── LocalStorage ──
+      function loadState() {
+        try {
+          entries = JSON.parse(localStorage.getItem("rad_entries")) || [];
+        } catch {
+          entries = [];
+        }
+        try {
+          cfg = JSON.parse(localStorage.getItem("rad_cfg")) || {
+            dealerPrices: {},
+            favDealer: "",
+          };
+        } catch {
+          cfg = { dealerPrices: {}, favDealer: "" };
+        }
+        try {
+          dealers = JSON.parse(localStorage.getItem("rad_dealers")) || [];
+        } catch {
+          dealers = [];
+        }
+        // Seed CycleSprings custom pricing
+        if (!cfg.dealerPrices) cfg.dealerPrices = {};
+        if (!cfg.dealerPrices["CycleSprings"]) {
+          cfg.dealerPrices["CycleSprings"] = {
+            "WPaint & Fabric Protection - Car": 179,
+            "WPaint & Fabric Protection - SUV": 229,
+            "WPaint & Fabric Protection - Truck": 279,
+            "Jet Ski": 75,
+            Motorcycle: 85,
+          };
+          localStorage.setItem("rad_cfg", JSON.stringify(cfg));
+        }
+        // Seed lost dealerships
+        const SEED = [
+          "Ed Morse Cadillac - Tampa",
+          "Ed Morse Cadillac - Brandon",
+        ];
+        SEED.forEach((d) => {
+          if (!dealers.includes(d)) dealers.push(d);
+        });
+        if (SEED.some((d) => dealers.includes(d))) save();
+      }
+
+      function save() {
+        localStorage.setItem("rad_entries", JSON.stringify(entries));
+        localStorage.setItem("rad_dealers", JSON.stringify(dealers));
+      }
+
+      // ── API ──
       async function call(method, params) {
         const url =
           method === "GET" && params
@@ -818,46 +1228,248 @@
         } catch {
           entries = JSON.parse(localStorage.getItem("rad_entries") || "[]");
         }
-        renderToday();
+        renderHistory();
       }
 
-      function renderToday() {
-        const today = new Date();
-        const todayStr =
-          today.getFullYear() +
-          "-" +
-          String(today.getMonth() + 1).padStart(2, "0") +
-          "-" +
-          String(today.getDate()).padStart(2, "0");
-        const todayEntries = entries.filter((e) => e.date === todayStr);
-        document.getElementById("countBadge").textContent =
-          todayEntries.length + LANG[lang].badge;
-        const tbody = document.getElementById("entriesBody");
-        const table = document.getElementById("entriesTable");
-        const empty = document.getElementById("emptyState");
-        if (!todayEntries.length) {
-          table.style.display = "none";
-          empty.style.display = "";
+      // ── Tab Switching ──
+      function switchTab(tab) {
+        document
+          .querySelectorAll(".tab")
+          .forEach((t) => t.classList.remove("active"));
+        document
+          .querySelector(`.tab[data-tab="${tab}"]`)
+          .classList.add("active");
+        document
+          .querySelectorAll(".section")
+          .forEach((s) => s.classList.remove("active"));
+        document.getElementById("view-" + tab).classList.add("active");
+        if (tab === "history") {
+          renderHistory();
+          populateFilterDealers();
+        }
+        if (tab === "log") {
+          populateDealers();
+          populateServices();
+        }
+      }
+
+      // ── Toggle Lang ──
+      function toggleLang() {
+        lang = lang === "en" ? "sp" : "en";
+        localStorage.setItem("rad_lang", lang);
+        applyLang();
+      }
+
+      function applyLang() {
+        const t = LANG[lang];
+        document.getElementById("pageTitle").textContent = t.pageTitle;
+        document.getElementById("langToggle").textContent =
+          lang === "en" ? "EN/SP" : "SP/EN";
+        document.getElementById("logoText").innerHTML =
+          t.logo + ' <span id="logoSpan">' + t.logoSpan + "</span>";
+        document.getElementById("tabLog").textContent = t.tabLog;
+        document.getElementById("tabHistory").textContent = t.tabHistory;
+        document.getElementById("cardNew").textContent = t.cardNew;
+        document.getElementById("cardHistory").textContent = t.cardHistory;
+
+        document.getElementById("emptyText").textContent = t.empty;
+        document.getElementById("submitBtn").textContent = t.submit;
+        document.getElementById("clearBtn").textContent = t.clear;
+        document.getElementById("washBtn").textContent = t.wash;
+        document.getElementById("exportBtn").textContent = t.exportBtn;
+
+        // Labels
+        const lm = {
+          date: t.lDate,
+          dealership: t.lDealer,
+          vin: t.lVin,
+          brand: t.lBrand,
+          model: t.lModel,
+          year: t.lYear,
+          stock: t.lStock,
+          ro: t.lRo,
+          department: t.lDept,
+          invoice: t.lInvoice,
+          service: t.lService,
+          notes: t.lNotes,
+        };
+        document.querySelectorAll("label").forEach((l) => {
+          const f = l.getAttribute("for");
+          if (f && lm[f]) l.textContent = lm[f];
+          if (
+            [
+              "dealership",
+              "brand",
+              "model",
+              "year",
+              "stock",
+              "department",
+              "service",
+            ].includes(f)
+          )
+            l.innerHTML = lm[f] + ' <span class="req">*</span>';
+        });
+
+        // Placeholders
+        const ph = {
+          vin: t.vinPH,
+          brand: t.brandPH,
+          model: t.modelPH,
+          year: t.yearPH,
+          stock: t.stockPH,
+          ro: t.roPH,
+          invoice: t.invPH,
+          notes: t.notesPH,
+        };
+        Object.keys(ph).forEach((k) => {
+          const el = document.getElementById(k);
+          if (el) el.placeholder = ph[k];
+        });
+        document.getElementById("vinHint").textContent = t.vinHint;
+
+        // Department options
+        const depOpts = document.querySelectorAll("#department option");
+        const depKeys = ["select", "depNew", "depUsed", "depService"];
+        depOpts.forEach((o, i) => {
+          if (depKeys[i]) o.textContent = t[depKeys[i]];
+        });
+
+        // Wash modal
+        document.getElementById("washTitle").textContent = t.washTitle;
+        document.querySelector(
+          '#washModal label[for="washDealer"]',
+        ).textContent = t.washDealer;
+        document.querySelector(
+          '#washModal label[for="washCount"]',
+        ).textContent = t.washCount;
+        document.getElementById("washAddBtn").textContent = t.washAdd;
+        document.getElementById("washCancelBtn").textContent = t.washCancel;
+
+        // Table headers
+        const thLabels = [
+          t.thDate,
+          t.thTime,
+          t.thDealer,
+          t.thVin,
+          t.thBrand,
+          t.thModel,
+          t.thYear,
+          t.thStock,
+          t.thService,
+        ];
+        document.querySelectorAll("#entriesTable thead th").forEach((th, i) => {
+          if (thLabels[i]) th.textContent = thLabels[i];
+        });
+
+        populateDealers();
+        populateServices();
+      }
+
+      // ── Dealers ──
+      function populateDealers() {
+        const sel = document.getElementById("dealership");
+        const cur = sel.value;
+        sel.innerHTML = "<option value=''>" + LANG[lang].select + "</option>";
+        const all = [...PRESETS, ...dealers];
+        all.forEach((d) => {
+          const o = document.createElement("option");
+          o.value = d;
+          o.textContent = d;
+          sel.appendChild(o);
+        });
+        // Add option to create a new dealership
+        const addOpt = document.createElement("option");
+        addOpt.value = "__add__";
+        addOpt.textContent = "+ Add Dealership...";
+        sel.appendChild(addOpt);
+
+        const fav = cfg.favDealer;
+        sel.value =
+          cur && [...sel.options].some((o) => o.value === cur)
+            ? cur
+            : fav && [...sel.options].some((o) => o.value === fav)
+              ? fav
+              : "";
+
+        updateFavStar();
+
+        if (
+          document.getElementById("view-history").classList.contains("active")
+        )
+          populateFilterDealers();
+      }
+
+      function toggleFav() {
+        const sel = document.getElementById("dealership");
+        const d = sel.value;
+        if (!d) return;
+        cfg.favDealer = cfg.favDealer === d ? "" : d;
+        localStorage.setItem("rad_cfg", JSON.stringify(cfg));
+        populateDealers();
+      }
+
+      function updateFavStar() {
+        const star = document.getElementById("favStarDropdown");
+        const sel = document.getElementById("dealership");
+        star.textContent = sel.value && cfg.favDealer === sel.value ? "★" : "☆";
+      }
+
+      // ── Services ──
+      function populateServices(forDealer) {
+        const sel = document.getElementById("service");
+        const cur = sel.value;
+        sel.innerHTML =
+          "<option value=''>" + LANG[lang].servicePH + "</option>";
+        const seen = new Set();
+        const add = (k) => {
+          if (seen.has(k)) return;
+          seen.add(k);
+          const o = document.createElement("option");
+          o.value = k;
+          o.textContent = k;
+          sel.appendChild(o);
+        };
+        Object.keys(S)
+          .filter((k) => k !== "Service Wash")
+          .forEach(add);
+        if (forDealer && cfg.dealerPrices?.[forDealer]) {
+          Object.keys(cfg.dealerPrices[forDealer])
+            .filter((k) => !(k in S) && k !== "Service Wash")
+            .forEach(add);
+        }
+        if (cur && [...sel.options].some((o) => o.value === cur))
+          sel.value = cur;
+      }
+
+      function onDealerChange() {
+        const sel = document.getElementById("dealership");
+        const d = sel.value;
+        if (d === "__add__") {
+          const name = prompt("Enter dealership name:");
+          if (name) {
+            const trimmed = name.trim();
+            if (![...PRESETS, ...dealers].includes(trimmed)) {
+              dealers.push(trimmed);
+              save();
+              populateDealers();
+            }
+            document.getElementById("dealership").value = trimmed;
+            populateServices(trimmed);
+          } else {
+            sel.value =
+              cfg.favDealer &&
+              [...sel.options].some((o) => o.value === cfg.favDealer)
+                ? cfg.favDealer
+                : "";
+          }
+          updateFavStar();
           return;
         }
-        table.style.display = "";
-        empty.style.display = "none";
-        tbody.innerHTML = todayEntries
-          .sort((a, b) => (b.syncedAt || "").localeCompare(a.syncedAt || ""))
-          .map(
-            (e) =>
-              `<tr><td>${(e.syncedAt || "").slice(11, 16)}</td><td>${esc(e.dealership)}</td><td>${esc(e.vin)}</td><td>${esc(e.brand)}</td><td>${esc(e.model)}</td><td>${esc(e.year)}</td><td>${esc(e.stock)}</td><td>${esc(e.ro)}</td><td>${esc(e.department)}</td><td>${esc(e.service)}</td></tr>`,
-          )
-          .join("");
+        populateServices(d);
+        updateFavStar();
       }
 
-      function esc(s) {
-        return (s || "")
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;");
-      }
-
+      // ── Default Date ──
       function setDefaultDate() {
         const d = new Date();
         document.getElementById("date").value =
@@ -871,14 +1483,29 @@
       function resetForm() {
         document.getElementById("entryForm").reset();
         setDefaultDate();
+        const sel = document.getElementById("dealership");
+        if (
+          cfg.favDealer &&
+          [...sel.options].some((o) => o.value === cfg.favDealer)
+        )
+          sel.value = cfg.favDealer;
+        populateServices(sel.value);
       }
 
+      // ── Submit ──
       async function handleSubmit(e) {
         e.preventDefault();
         const f = e.target;
+        const svc = f.service.value;
+        const dealer = f.dealership.value;
+        if (!dealer) return showToast(LANG[lang].noDealer, "error");
+        if (!svc) return showToast(LANG[lang].noSvc, "error");
+        const price = getPrice(svc, dealer);
+        if (price == null) return showToast("Invalid service.", "error");
+
         const data = {
           date: f.date.value,
-          dealership: f.dealership.value,
+          dealership: dealer,
           vin: f.vin.value.trim().toUpperCase(),
           brand: f.brand.value,
           model: f.model.value,
@@ -886,24 +1513,27 @@
           stock: f.stock.value,
           ro: f.ro.value,
           department: f.department.value,
-          service: f.service.value,
-          price: parseFloat(f.price.value) || 0,
+          service: svc,
+          price: price,
           invoice: f.invoice.value,
           notes: f.notes.value,
         };
-        if (!data.dealership || !data.vin)
-          return showToast(LANG[lang].req, "error");
+        if (!data.vin) return showToast(LANG[lang].req, "error");
         try {
           const check = await call("GET", { vin: data.vin, date: data.date });
           if (check.exists && !confirm(LANG[lang].dupConfirm)) return;
-        } catch {
-          /* offline, skip duplicate check */
-        }
+        } catch {}
         try {
           await call("POST", data);
           showToast(LANG[lang].saved, "success");
           f.reset();
           setDefaultDate();
+          if (cfg.favDealer) {
+            const sel = document.getElementById("dealership");
+            if ([...sel.options].some((o) => o.value === cfg.favDealer))
+              sel.value = cfg.favDealer;
+          }
+          populateServices(document.getElementById("dealership").value);
           await loadEntries();
           applyLang();
         } catch (err) {
@@ -912,74 +1542,88 @@
             id: "local-" + Date.now(),
             syncedAt: new Date().toISOString(),
           });
-          localStorage.setItem("rad_entries", JSON.stringify(entries));
-          renderToday();
+          save();
+          renderHistory();
           applyLang();
           showToast(LANG[lang].offline, "info");
         }
       }
 
-      // toast
-      function showToast(msg, type) {
-        const old = document.querySelector(".toast");
-        if (old) old.remove();
-        const t = document.createElement("div");
-        t.className = "toast " + type;
-        t.textContent = msg;
-        document.body.appendChild(t);
-        setTimeout(() => t.remove(), 3000);
+      // ── Service Wash Modal ──
+      function openWashModal() {
+        const sel = document.getElementById("washDealer");
+        sel.innerHTML = "<option value=''>Select...</option>";
+        const all = [...PRESETS, ...dealers];
+        all.forEach((d) => {
+          const o = document.createElement("option");
+          o.value = d;
+          o.textContent = d;
+          sel.appendChild(o);
+        });
+        const cur = document.getElementById("dealership").value;
+        if (cur) sel.value = cur;
+        document.getElementById("washCount").value = 1;
+        document.getElementById("washModal").classList.add("open");
       }
 
-      function populateDealers() {
-        const sel = document.getElementById("dealership");
-        sel.innerHTML =
-          "<option value=''>" +
-          LANG[lang].select +
-          "</option>" +
-          dealers
-            .map(
-              (d) => "<option value='" + esc(d) + "'>" + esc(d) + "</option>",
-            )
-            .join("");
+      function closeWashModal() {
+        document.getElementById("washModal").classList.remove("open");
       }
 
-      function populateServices() {
-        const sel = document.getElementById("service");
-        sel.innerHTML =
-          "<option value=''>" +
-          LANG[lang].selectService +
-          "</option>" +
-          LANG[lang].services
-            .map(
-              (s) => "<option value='" + esc(s) + "'>" + esc(s) + "</option>",
-            )
-            .join("");
+      function submitQuickWash() {
+        const dealer = document.getElementById("washDealer").value;
+        const count = Math.max(
+          1,
+          parseInt(document.getElementById("washCount").value) || 1,
+        );
+        if (!dealer) return showToast(LANG[lang].noDealer, "error");
+        const d = new Date();
+        const ds =
+          d.getFullYear() +
+          "-" +
+          String(d.getMonth() + 1).padStart(2, "0") +
+          "-" +
+          String(d.getDate()).padStart(2, "0");
+        for (let i = 0; i < count; i++) {
+          entries.push({
+            id: crypto.randomUUID
+              ? crypto.randomUUID()
+              : Date.now().toString(36) + Math.random().toString(36).slice(2),
+            date: ds,
+            dealership: dealer,
+            vin: "",
+            brand: "",
+            model: "",
+            year: "",
+            stock: "",
+            ro: "",
+            department: "Service",
+            service: "Service Wash",
+            price: 10,
+            notes: "Quick wash",
+            invoice: "",
+            created: Date.now(),
+            syncedAt: new Date().toISOString(),
+          });
+        }
+        save();
+        closeWashModal();
+        renderHistory();
+        showToast(count + " " + LANG[lang].washAdded + " " + dealer, "success");
       }
 
-      // VIN auto-fill Stock#
+      // ── VIN ──
       function fillStockFromVin() {
         const v = document.getElementById("vin").value.trim().toUpperCase();
-        if (v.length >= 8 && v !== document.getElementById("stock").value) {
+        if (v.length >= 8) {
           const s = document.getElementById("stock");
           if (!s.value) s.value = v.slice(-8);
         }
       }
-      let vinTimer;
-      document
-        .getElementById("vin")
-        .addEventListener("paste", () => setTimeout(fillStockFromVin, 50));
-      document.getElementById("vin").addEventListener("input", () => {
-        clearTimeout(vinTimer);
-        fillStockFromVin();
-        const v = document.getElementById("vin").value.trim();
-        if (v.length === 17)
-          vinTimer = setTimeout(() => decodeVin(v.toUpperCase()), 600);
-      });
 
-      // VIN decode
       async function decodeVin(v) {
-        const s = document.getElementById("vinSpinner");
-        s.style.display = "block";
+        const sp = document.getElementById("vinSpinner");
+        sp.style.display = "block";
         try {
           const res = await fetch(
             "https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVINValuesBatch/",
@@ -998,215 +1642,235 @@
               document.getElementById("year").value = r.ModelYear;
           }
         } catch {}
-        s.style.display = "none";
+        sp.style.display = "none";
       }
 
-      function toggleLang() {
-        lang = lang === "en" ? "sp" : "en";
-        localStorage.setItem("rad_lang", lang);
-        applyLang();
+      // ── Toast ──
+      function showToast(msg, type) {
+        const old = document.querySelector(".toast");
+        if (old) old.remove();
+        const t = document.createElement("div");
+        t.className = "toast " + type;
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 3000);
       }
 
-      function applyLang() {
-        const t = LANG[lang];
-        document.getElementById("pageTitle").textContent = t.pageTitle;
-        document.getElementById("langToggle").textContent =
-          lang === "en" ? "EN/SP" : "SP/EN";
-        const logo = document.querySelector(".logo");
-        if (logo)
-          logo.innerHTML = `<div class="logo-icon">R</div> ${t.logo}<span>${t.logoSpan}</span>`;
+      // ── History ──
+      function renderHistory() {
+        const dateFilter = document.getElementById("filterDate").value;
+        const dealerFilter = document.getElementById("filterDealer").value;
+        const vinFilter = document
+          .getElementById("filterVin")
+          .value.trim()
+          .toUpperCase();
+        const today = new Date();
+        const todayStr =
+          today.getFullYear() +
+          "-" +
+          String(today.getMonth() + 1).padStart(2, "0") +
+          "-" +
+          String(today.getDate()).padStart(2, "0");
+
+        let filtered = entries.filter((e) => {
+          if (dateFilter && e.date !== dateFilter) return false;
+          if (dealerFilter && e.dealership !== dealerFilter) return false;
+          if (vinFilter && !(e.vin || "").toUpperCase().includes(vinFilter))
+            return false;
+          return true;
+        });
+
+        const todayEntries = entries.filter((e) => e.date === todayStr);
         document.getElementById("countBadge").textContent =
-          entries.filter(
-            (e) => e.date === new Date().toISOString().slice(0, 10),
-          ).length + t.badge;
-        document.querySelector(".card-title").textContent = t.cardToday;
-        document
-          .querySelectorAll(".card")[1]
-          .querySelector(".card-title").textContent = t.cardNew;
-        document.querySelector("#emptyState p").textContent = t.empty;
-        const ths = document.querySelectorAll("#entriesTable thead th");
-        const thLabels = [
-          t.thTime,
-          t.thDealer,
-          t.thVin,
-          t.thBrand,
-          t.thModel,
-          t.thYear,
-          t.thStock,
-          t.thRo,
-          t.thDept,
-          t.thService,
-        ];
-        ths.forEach((th, i) => {
-          if (thLabels[i]) th.textContent = thLabels[i];
+          todayEntries.length + LANG[lang].badge;
+
+        const tbody = document.getElementById("entriesBody");
+        const table = document.getElementById("entriesTable");
+        const empty = document.getElementById("emptyState");
+
+        // Stats
+        const total = filtered.length;
+        const byDealer = {};
+        filtered.forEach((e) => {
+          byDealer[e.dealership] = (byDealer[e.dealership] || 0) + 1;
         });
-        const labels = document.querySelectorAll("label");
-        const labelMap = {
-          date: t.lDate,
-          dealership: t.lDealer,
-          vin: t.lVin,
-          brand: t.lBrand,
-          model: t.lModel,
-          year: t.lYear,
-          stock: t.lStock,
-          ro: t.lRo,
-          department: t.lDept,
-          price: t.lPrice,
-          invoice: t.lInvoice,
-          service: t.lService,
-          notes: t.lNotes,
-        };
-        labels.forEach((l) => {
-          const f = l.getAttribute("for");
-          if (f && labelMap[f])
-            l.innerHTML =
-              labelMap[f] +
-              ([
-                "dealership",
-                "brand",
-                "model",
-                "year",
-                "stock",
-                "department",
-                "price",
-                "service",
-              ].includes(f)
-                ? ' <span class="req">*</span>'
-                : "");
+        document.getElementById("statsBar").innerHTML =
+          "<div class='stat'><div class='stat-val'>" +
+          total +
+          "</div><div class='stat-lbl'>Entries</div></div>" +
+          "<div class='stat'><div class='stat-val'>" +
+          Object.keys(byDealer).length +
+          "</div><div class='stat-lbl'>Dealers</div></div>";
+
+        if (!filtered.length) {
+          table.style.display = "none";
+          empty.style.display = "";
+          document.getElementById("emptyText").textContent =
+            dateFilter || dealerFilter || vinFilter
+              ? LANG[lang].emptyHist
+              : LANG[lang].empty;
+          return;
+        }
+        table.style.display = "";
+        empty.style.display = "none";
+        const regular = filtered.filter((e) => e.service !== "Service Wash");
+        const washes = filtered.filter((e) => e.service === "Service Wash");
+
+        const grouped = {};
+        washes.forEach((e) => {
+          const key = e.date + "||" + e.dealership;
+          if (!grouped[key])
+            grouped[key] = { date: e.date, dealership: e.dealership, count: 0 };
+          grouped[key].count++;
         });
-        const ph = {
-          vin: t.vinPH,
-          brand: t.brandPH,
-          model: t.modelPH,
-          year: t.yearPH,
-          stock: t.stockPH,
-          ro: t.roPH,
-          price: t.pricePH,
-          invoice: t.invPH,
-          notes: t.notesPH,
-        };
-        Object.keys(ph).forEach((k) => {
-          const el = document.getElementById(k);
-          if (el) el.placeholder = ph[k];
-        });
-        document.querySelector("#entryForm .btn-primary").textContent =
-          t.submit;
-        document.querySelector("#entryForm .btn-secondary").textContent =
-          t.clear;
-        populateDealers();
-        populateServices();
-        // department select
-        const depOpts = document.querySelectorAll("#department option");
-        const depKeys = ["select", "depNew", "depUsed", "depService"];
-        depOpts.forEach((o, i) => {
-          if (depKeys[i]) o.textContent = t[depKeys[i]];
-        });
-        document.getElementById("langToggle").textContent =
-          lang === "en" ? "EN/SP" : "SP/EN";
+
+        const rows = regular
+          .sort((a, b) => (b.syncedAt || "").localeCompare(a.syncedAt || ""))
+          .map((e) => {
+            return (
+              "<tr><td>" +
+              esc(e.date) +
+              "</td><td>" +
+              (e.syncedAt || "").slice(11, 16) +
+              "</td><td>" +
+              esc(e.dealership) +
+              "</td><td>" +
+              esc(e.vin) +
+              "</td><td>" +
+              esc(e.brand) +
+              "</td><td>" +
+              esc(e.model) +
+              "</td><td>" +
+              esc(e.year) +
+              "</td><td>" +
+              esc(e.stock) +
+              "</td><td><span class='svc-badge'>" +
+              esc(e.service) +
+              "</span></td></tr>"
+            );
+          });
+
+        Object.values(grouped)
+          .sort((a, b) => b.date.localeCompare(a.date))
+          .forEach((g) => {
+            rows.push(
+              "<tr><td>" +
+                esc(g.date) +
+                "</td><td>—</td><td>" +
+                esc(g.dealership) +
+                '</td><td></td><td></td><td></td><td></td><td></td><td><span class="svc-badge">' +
+                g.count +
+                "x Service Wash</span></td></tr>",
+            );
+          });
+
+        tbody.innerHTML = rows.join("");
       }
 
-      // Test seed data
-      async function seedTestEntries() {
-        const test = [
-          {
-            date: new Date().toISOString().slice(0, 10),
-            dealership: "Ed Morse Cadillac - Tampa",
-            vin: "1G1YS3D66K5800001",
-            brand: "Chevrolet",
-            model: "Corvette",
-            year: "2025",
-            stock: "C25001",
-            ro: "RO001",
-            department: "New Car",
-            service: "Full Detail - Car",
-            price: 399.99,
-            invoice: "INV001",
-            notes: "New inventory detail",
-          },
-          {
-            date: new Date().toISOString().slice(0, 10),
-            dealership: "Ed Morse Cadillac - Brandon",
-            vin: "2C4RC1BG3LR000002",
-            brand: "Chrysler",
-            model: "Pacifica",
-            year: "2024",
-            stock: "P24002",
-            ro: "RO002",
-            department: "Used Car",
-            service: "Full Detail - SUV",
-            price: 549.99,
-            invoice: "INV002",
-            notes: "CPO detail",
-          },
-          {
-            date: new Date().toISOString().slice(0, 10),
-            dealership: "Ed Morse Cadillac - Tampa",
-            vin: "1FA6P8TH3MZ000003",
-            brand: "Ford",
-            model: "Mustang",
-            year: "2025",
-            stock: "M25003",
-            ro: "RO003",
-            department: "Service",
-            service: "Express Detail",
-            price: 199.99,
-            invoice: "",
-            notes: "Customer express",
-          },
-          {
-            date: new Date().toISOString().slice(0, 10),
-            dealership: "Ed Morse Cadillac - Brandon",
-            vin: "3GNAXUEV5ML000004",
-            brand: "Chevrolet",
-            model: "Equinox",
-            year: "2024",
-            stock: "E24004",
-            ro: "RO004",
-            department: "New Car",
-            service: "Ceramic Coating",
-            price: 1299.99,
-            invoice: "INV004",
-            notes: "New car ceramic coating",
-          },
-          {
-            date: new Date().toISOString().slice(0, 10),
-            dealership: "Ed Morse Cadillac - Tampa",
-            vin: "1HGCV1F35KA000005",
-            brand: "Honda",
-            model: "Accord",
-            year: "2023",
-            stock: "A23005",
-            ro: "RO005",
-            department: "Used Car",
-            service: "Paint Correction",
-            price: 899.99,
-            invoice: "INV005",
-            notes: "Paint correction before sale",
-          },
-        ];
-        for (const e of test) {
-          try {
-            await call("POST", e);
-          } catch {}
-        }
-        await loadEntries();
-        applyLang();
+      function populateFilterDealers() {
+        const sel = document.getElementById("filterDealer");
+        const cur = sel.value;
+        sel.innerHTML = "<option value=''>All</option>";
+        const all = [...PRESETS, ...dealers];
+        all.forEach((d) => {
+          const o = document.createElement("option");
+          o.value = d;
+          o.textContent = d;
+          sel.appendChild(o);
+        });
+        sel.value =
+          cur && [...sel.options].some((o) => o.value === cur) ? cur : "";
       }
 
-      // init
-      setDefaultDate();
-      populateDealers();
-      populateServices();
-      loadEntries().then(() => {
-        if (entries.length === 0) seedTestEntries();
-        applyLang();
-      });
-      document.getElementById("entryForm").addEventListener("keydown", (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-          e.preventDefault();
-          document.getElementById("entryForm").requestSubmit();
-        }
-      });
+      // ── CSV Export ──
+      function exportCSV() {
+        const pin = prompt("Enter Price PIN:");
+        const showPrices = pin === "122824";
+        const headers = showPrices
+          ? [
+              "Date",
+              "Time",
+              "Dealership",
+              "VIN",
+              "Brand",
+              "Model",
+              "Year",
+              "Stock#",
+              "RO#",
+              "Department",
+              "Service",
+              "Price",
+              "Invoice",
+              "Notes",
+            ]
+          : [
+              "Date",
+              "Time",
+              "Dealership",
+              "VIN",
+              "Brand",
+              "Model",
+              "Year",
+              "Stock#",
+              "RO#",
+              "Department",
+              "Service",
+              "Invoice",
+              "Notes",
+            ];
+        const rows = entries.map((e) => {
+          const row = [
+            e.date,
+            (e.syncedAt || "").slice(11, 16) || "",
+            e.dealership,
+            e.vin,
+            e.brand,
+            e.model,
+            e.year,
+            e.stock,
+            e.ro,
+            e.department,
+            e.service,
+            e.invoice || "",
+            e.notes || "",
+          ];
+          if (showPrices) row.splice(11, 0, e.price != null ? e.price : "");
+          return row;
+        });
+        rows.sort(
+          (a, b) =>
+            (a[2] || "").localeCompare(b[2] || "") ||
+            (a[0] || "").localeCompare(b[0] || ""),
+        );
+        const csv = [headers, ...rows]
+          .map((row) =>
+            row
+              .map((cell) => {
+                const s = String(cell ?? "");
+                return s.includes(",") || s.includes('"') || s.includes("\n")
+                  ? '"' + s.replace(/"/g, '""') + '"'
+                  : s;
+              })
+              .join(","),
+          )
+          .join("\n");
+        const blob = new Blob(["\ufeff" + csv], {
+          type: "text/csv;charset=utf-8",
+        });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "rad-export.csv";
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+
+      // ── Esc ──
+      function esc(s) {
+        return (s || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
     </script>
   </body>
 </html>
