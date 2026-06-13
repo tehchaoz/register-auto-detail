@@ -1233,8 +1233,7 @@
 
       // ── State ──
       let lang = localStorage.getItem("rad_lang") || "en";
-      const API =
-        "https://script.google.com/macros/s/AKfycbzmpmcu_f01ZoB0FlNYODQqwGYxSe7f_3-YaYD4T-cvRGojP37RIgsrMmOKT6OC06Fn/exec";
+      const API = "/.netlify/functions/proxy";
       let entries = [];
       let cfg = { dealerPrices: {}, favDealer: "" };
       let dealers = [];
@@ -1329,7 +1328,10 @@
           method === "GET" && params
             ? API + "?" + new URLSearchParams(params)
             : API;
-        const opts = { method };
+        const opts = {
+          method,
+          headers: { "Content-Type": "application/json" },
+        };
         if (method !== "GET") opts.body = JSON.stringify(params);
         const res = await fetch(url, opts);
         const d = await res.json();
