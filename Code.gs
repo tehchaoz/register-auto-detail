@@ -1,7 +1,8 @@
+const SHEET_ID = "1Y7R0JdwKP9VbjmXVXrJw4pfshEcYiJPJla2bWel6F0I"
 const SHEET_NAME = "Sheet1"
 
 function getSheet() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet()
+  const ss = SpreadsheetApp.openById(SHEET_ID)
   let sheet = ss.getSheetByName(SHEET_NAME)
   if (!sheet) {
     sheet = ss.insertSheet(SHEET_NAME)
