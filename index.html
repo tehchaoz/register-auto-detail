@@ -1345,28 +1345,44 @@
         return d;
       }
 
+      function norm(e) {
+        return {
+          date: e.Date || e.date || "",
+          dealership: e.Dealership || e.dealership || "",
+          vin: e.VIN || e.vin || "",
+          brand: e.Brand || e.brand || "",
+          model: e.Model || e.model || "",
+          year: e.Year || e.year || "",
+          stock: e["Stock#"] || e.stock || "",
+          ro: e["RO#"] || e.ro || "",
+          department: e.Department || e.department || "",
+          service: e.Service || e.service || "",
+          price: e.Price ?? e.price ?? "",
+          invoice: e.Invoice || e.invoice || "",
+          notes: e.Notes || e.notes || "",
+          syncedAt: e.SyncedAt || e.syncedAt || "",
+          id: e.id || e.ID || "",
+        }
+      }
+
       async function loadEntries() {
         try {
           const d = await call("GET");
-          const server = (d.entries || []).map((e) => ({
-            date: e.Date || e.date || "",
-            dealership: e.Dealership || e.dealership || "",
-            vin: e.VIN || e.vin || "",
-            brand: e.Brand || e.brand || "",
-            model: e.Model || e.model || "",
-            year: e.Year || e.year || "",
-            stock: e["Stock#"] || e.stock || "",
-            ro: e["RO#"] || e.ro || "",
-            department: e.Department || e.department || "",
-            service: e.Service || e.service || "",
-            price: e.Price ?? e.price ?? "",
-            invoice: e.Invoice || e.invoice || "",
-            notes: e.Notes || e.notes || "",
-            syncedAt: e.SyncedAt || e.syncedAt || "",
-            id: e.id || e.ID || "",
-          }));
+          const server = (d.entries || []).map(norm);
           if (server.length) {
-            entries = server;
+            const local = (JSON.parse(localStorage.getItem("rad_entries") || "[]")).map(norm);
+            const ids = new Set(local.map((e) => e.id));
+            for (const s of server) {
+              if (!ids.has(s.id)) local.push(s);
+            }
+            entries = local;
+            localStorage.setItem("rad_entries", JSON.stringify(entries));
+          }
+        } catch {}
+        entries = (JSON.parse(localStorage.getItem("rad_entries") || "[]")).map(norm);
+        renderHistory();
+      }
+            entries = local;
             localStorage.setItem("rad_entries", JSON.stringify(entries));
           }
         } catch {}
