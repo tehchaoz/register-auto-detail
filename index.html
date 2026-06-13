@@ -1233,7 +1233,8 @@
 
       // ── State ──
       let lang = localStorage.getItem("rad_lang") || "en";
-      const API = "/.netlify/functions/proxy";
+      const API =
+        "https://script.google.com/macros/s/AKfycbzmpmcu_f01ZoB0FlNYODQqwGYxSe7f_3-YaYD4T-cvRGojP37RIgsrMmOKT6OC06Fn/exec";
       let entries = [];
       let cfg = { dealerPrices: {}, favDealer: "" };
       let dealers = [];
@@ -1328,25 +1329,33 @@
           method === "GET" && params
             ? API + "?" + new URLSearchParams(params)
             : API;
-        const opts = {
+        if (method === "GET") {
+          const res = await fetch(url);
+          const d = await res.json();
+          if (d.status !== "ok") throw new Error(d.message || "Error");
+          return d;
+        }
+        await fetch(url, {
           method,
-          headers: { "Content-Type": "application/json" },
-        };
-        if (method !== "GET") opts.body = JSON.stringify(params);
-        const res = await fetch(url, opts);
-        const d = await res.json();
-        if (d.status !== "ok") throw new Error(d.message || "Error");
-        return d;
+          body: JSON.stringify(params),
+          mode: "no-cors",
+        });
+        return { status: "ok" };
       }
 
       async function loadEntries() {
         try {
           const d = await call("GET");
-          entries = (d.entries || []).map((e) => ({ ...e, id: e.id || e.ID }));
-          localStorage.setItem("rad_entries", JSON.stringify(entries));
-        } catch {
-          entries = JSON.parse(localStorage.getItem("rad_entries") || "[]");
-        }
+          const server = (d.entries || []).map((e) => ({
+            ...e,
+            id: e.id || e.ID,
+          }));
+          if (server.length) {
+            entries = server;
+            localStorage.setItem("rad_entries", JSON.stringify(entries));
+          }
+        } catch {}
+        entries = JSON.parse(localStorage.getItem("rad_entries") || "[]");
         renderHistory();
       }
 
@@ -1642,34 +1651,35 @@
           notes: f.notes.value,
         };
         if (!data.vin) return showToast(LANG[lang].req, "error");
+        // Save locally immediately
+        const id =
+          "local-" + Date.now() + Math.random().toString(36).slice(2, 6);
+        entries.push({ ...data, id, syncedAt: new Date().toISOString() });
+        save();
         try {
           const check = await call("GET", { vin: data.vin, date: data.date });
-          if (check.exists && !confirm(LANG[lang].dupConfirm)) return;
+          if (check.exists && !confirm(LANG[lang].dupConfirm)) {
+            entries.pop();
+            save();
+            return;
+          }
         } catch {}
         try {
           await call("POST", data);
           showToast(LANG[lang].saved, "success");
-          f.reset();
-          setDefaultDate();
-          if (cfg.favDealer) {
-            const sel = document.getElementById("dealership");
-            if ([...sel.options].some((o) => o.value === cfg.favDealer))
-              sel.value = cfg.favDealer;
-          }
-          populateServices(document.getElementById("dealership").value);
-          await loadEntries();
-          applyLang();
-        } catch (err) {
-          entries.push({
-            ...data,
-            id: "local-" + Date.now(),
-            syncedAt: new Date().toISOString(),
-          });
-          save();
-          renderHistory();
-          applyLang();
+        } catch {
           showToast(LANG[lang].offline, "info");
         }
+        f.reset();
+        setDefaultDate();
+        if (cfg.favDealer) {
+          const sel = document.getElementById("dealership");
+          if ([...sel.options].some((o) => o.value === cfg.favDealer))
+            sel.value = cfg.favDealer;
+        }
+        populateServices(document.getElementById("dealership").value);
+        await loadEntries();
+        applyLang();
       }
 
       // ── Service Wash Modal ──
@@ -2075,19 +2085,19 @@
         };
         if (!data.dealership || !data.service)
           return showToast(LANG[lang].req, "error");
+        const idx = entries.findIndex((e) => e.id === id);
+        if (idx !== -1) {
+          entries[idx] = {
+            ...entries[idx],
+            ...data,
+            syncedAt: new Date().toISOString(),
+          };
+          save();
+        }
         try {
           await call("POST", data);
           showToast(LANG[lang].saved, "success");
         } catch {
-          const idx = entries.findIndex((e) => e.id === id);
-          if (idx !== -1) {
-            entries[idx] = {
-              ...entries[idx],
-              ...data,
-              syncedAt: new Date().toISOString(),
-            };
-            save();
-          }
           showToast(LANG[lang].offline, "info");
         }
         closeEditModal();
