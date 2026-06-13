@@ -1326,8 +1326,8 @@
       // ── API ──
       async function call(method, params) {
         const url =
-          method === "GET" && params
-            ? API + "?" + new URLSearchParams(params)
+          method === "GET"
+            ? API + (params ? "?" + new URLSearchParams(params) : "")
             : API;
         if (method === "GET") {
           const res = await fetch(url);
@@ -1335,20 +1335,35 @@
           if (d.status !== "ok") throw new Error(d.message || "Error");
           return d;
         }
-        await fetch(url, {
+        const res = await fetch(url, {
           method,
-          body: JSON.stringify(params),
-          mode: "no-cors",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams(params),
         });
-        return { status: "ok" };
+        const d = await res.json();
+        if (d.status !== "ok") throw new Error(d.message || "Error");
+        return d;
       }
 
       async function loadEntries() {
         try {
           const d = await call("GET");
           const server = (d.entries || []).map((e) => ({
-            ...e,
-            id: e.id || e.ID,
+            date: e.Date || e.date || "",
+            dealership: e.Dealership || e.dealership || "",
+            vin: e.VIN || e.vin || "",
+            brand: e.Brand || e.brand || "",
+            model: e.Model || e.model || "",
+            year: e.Year || e.year || "",
+            stock: e["Stock#"] || e.stock || "",
+            ro: e["RO#"] || e.ro || "",
+            department: e.Department || e.department || "",
+            service: e.Service || e.service || "",
+            price: e.Price ?? e.price ?? "",
+            invoice: e.Invoice || e.invoice || "",
+            notes: e.Notes || e.notes || "",
+            syncedAt: e.SyncedAt || e.syncedAt || "",
+            id: e.id || e.ID || "",
           }));
           if (server.length) {
             entries = server;

@@ -33,33 +33,23 @@ function doGet(e) {
 }
 
 function doPost(e) {
-  const body = JSON.parse(e.postData.contents)
+  const b = e.parameter
 
-  if (body._method === "PUT") {
+  if (b._method === "PUT") {
     const sheet = getSheet()
     const data = sheet.getDataRange().getValues()
     for (let i = 1; i < data.length; i++) {
-      if (data[i][0] === body.id) {
+      if (data[i][0] === b.id) {
         const updated = [
-          body.id,
-          body.date || "",
-          body.dealership || "",
-          body.vin || "",
-          body.brand || "",
-          body.model || "",
-          body.year || "",
-          body.stock || "",
-          body.ro || "",
-          body.department || "",
-          body.service || "",
-          body.price != null ? body.price : "",
-          body.invoice || "",
-          body.notes || "",
+          b.id, b.date || "", b.dealership || "", b.vin || "",
+          b.brand || "", b.model || "", b.year || "", b.stock || "",
+          b.ro || "", b.department || "", b.service || "",
+          b.price || "", b.invoice || "", b.notes || "",
           new Date().toISOString(),
         ]
         sheet.getRange(i + 1, 1, 1, 15).setValues([updated])
         return ContentService
-          .createTextOutput(JSON.stringify({ status: "ok", entry: { ID: body.id, ...body } }))
+          .createTextOutput(JSON.stringify({ status: "ok", entry: { id: b.id } }))
           .setMimeType(ContentService.MimeType.JSON)
       }
     }
@@ -71,19 +61,19 @@ function doPost(e) {
   const sheet = getSheet()
   const entry = {
     ID: Utilities.getUuid(),
-    Date: body.date || "",
-    Dealership: body.dealership || "",
-    VIN: body.vin || "",
-    Brand: body.brand || "",
-    Model: body.model || "",
-    Year: body.year || "",
-    "Stock#": body.stock || "",
-    "RO#": body.ro || "",
-    Department: body.department || "",
-    Service: body.service || "",
-    Price: body.price != null ? body.price : "",
-    Invoice: body.invoice || "",
-    Notes: body.notes || "",
+    Date: b.date || "",
+    Dealership: b.dealership || "",
+    VIN: b.vin || "",
+    Brand: b.brand || "",
+    Model: b.model || "",
+    Year: b.year || "",
+    "Stock#": b.stock || "",
+    "RO#": b.ro || "",
+    Department: b.department || "",
+    Service: b.service || "",
+    Price: b.price || "",
+    Invoice: b.invoice || "",
+    Notes: b.notes || "",
     SyncedAt: new Date().toISOString(),
   }
   sheet.appendRow([
