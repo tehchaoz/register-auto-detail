@@ -586,6 +586,21 @@
         min-height: 36px;
         padding: 8px 14px;
       }
+      .edit-btn {
+        background: none;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        color: var(--text-muted);
+        cursor: pointer;
+        font-size: 0.72rem;
+        padding: 2px 8px;
+        transition: all 0.2s;
+        font-family: var(--font);
+      }
+      .edit-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
       @media print {
         body {
           background: #fff;
@@ -892,6 +907,7 @@
                   <th id="thYear">Year</th>
                   <th id="thStock">Stock#</th>
                   <th id="thService">Service</th>
+                  <th id="thActions">Actions</th>
                 </tr>
               </thead>
               <tbody id="entriesBody"></tbody>
@@ -935,6 +951,96 @@
             Cancel
           </button>
         </div>
+      </div>
+    </div>
+
+    <!-- ═══ EDIT MODAL ═══ -->
+    <div
+      class="modal-overlay"
+      id="editModal"
+      onclick="if(event.target===this)closeEditModal()"
+    >
+      <div
+        class="modal"
+        style="max-width: 520px; max-height: 85vh; overflow-y: auto"
+      >
+        <div class="modal-title" id="editTitle">Edit Entry</div>
+        <form id="editForm" onsubmit="saveEdit(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="editDate">Date</label>
+              <input type="date" id="editDate" required />
+            </div>
+            <div class="form-group">
+              <label for="editDealer">Dealership</label>
+              <select id="editDealer" required></select>
+            </div>
+            <div class="form-group">
+              <label for="editVin">VIN</label>
+              <input type="text" id="editVin" />
+            </div>
+            <div class="form-group">
+              <label for="editBrand">Brand</label>
+              <input type="text" id="editBrand" required />
+            </div>
+            <div class="form-group">
+              <label for="editModel">Model</label>
+              <input type="text" id="editModel" required />
+            </div>
+            <div class="form-group">
+              <label for="editYear">Year</label>
+              <input type="text" id="editYear" required />
+            </div>
+            <div class="form-group">
+              <label for="editStock">Stock #</label>
+              <input type="text" id="editStock" required />
+            </div>
+            <div class="form-group">
+              <label for="editRo">RO #</label>
+              <input type="text" id="editRo" />
+            </div>
+            <div class="form-group">
+              <label for="editDept">Department</label>
+              <select id="editDept" required>
+                <option value="New Car">New Car</option>
+                <option value="Used Car">Used Car</option>
+                <option value="Service">Service</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="editPrice">Price</label>
+              <input type="text" id="editPrice" />
+            </div>
+            <div class="form-group full">
+              <label for="editService">Service</label>
+              <select id="editService" required></select>
+            </div>
+            <div class="form-group full">
+              <label for="editInvoice">Invoice #</label>
+              <input type="text" id="editInvoice" />
+            </div>
+            <div class="form-group full">
+              <label for="editNotes">Notes</label>
+              <textarea id="editNotes"></textarea>
+            </div>
+          </div>
+          <div class="btn-group" style="margin-top: 16px">
+            <button
+              type="submit"
+              class="btn btn-sm btn-primary"
+              id="saveEditBtn"
+            >
+              Save
+            </button>
+            <button
+              type="button"
+              class="btn btn-sm btn-secondary"
+              onclick="closeEditModal()"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
       </div>
     </div>
 
@@ -1042,6 +1148,11 @@
           noSvc: "Select a service.",
           exportBtn: "Export",
           washAdded: "wash(es) added for",
+          editBtn: "Edit",
+          editTitle: "Edit Entry",
+          saveBtn: "Save",
+          cancelBtn: "Cancel",
+          thActions: "Actions",
         },
         sp: {
           pageTitle: "RAD — Entrada",
@@ -1112,12 +1223,18 @@
           noSvc: "Seleccione un servicio.",
           exportBtn: "Exportar",
           washAdded: "lavado(s) agregado(s) para",
+          editBtn: "Editar",
+          editTitle: "Editar Entrada",
+          saveBtn: "Guardar",
+          cancelBtn: "Cancelar",
+          thActions: "Acciones",
         },
       };
 
       // ── State ──
       let lang = localStorage.getItem("rad_lang") || "en";
-      const API = "/.netlify/functions/entries";
+      const API =
+        "https://script.google.com/macros/s/AKfycbzmpmcu_f01ZoB0FlNYODQqwGYxSe7f_3-YaYD4T-cvRGojP37RIgsrMmOKT6OC06Fn/exec";
       let entries = [];
       let cfg = { dealerPrices: {}, favDealer: "" };
       let dealers = [];
@@ -1152,7 +1269,10 @@
       });
 
       document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") closeWashModal();
+        if (e.key === "Escape") {
+          closeWashModal();
+          closeEditModal();
+        }
       });
 
       // ── LocalStorage ──
@@ -1209,10 +1329,7 @@
           method === "GET" && params
             ? API + "?" + new URLSearchParams(params)
             : API;
-        const opts = {
-          method,
-          headers: { "Content-Type": "application/json" },
-        };
+        const opts = { method };
         if (method !== "GET") opts.body = JSON.stringify(params);
         const res = await fetch(url, opts);
         const d = await res.json();
@@ -1223,7 +1340,7 @@
       async function loadEntries() {
         try {
           const d = await call("GET");
-          entries = d.entries || [];
+          entries = (d.entries || []).map((e) => ({ ...e, id: e.id || e.ID }));
           localStorage.setItem("rad_entries", JSON.stringify(entries));
         } catch {
           entries = JSON.parse(localStorage.getItem("rad_entries") || "[]");
@@ -1356,10 +1473,14 @@
           t.thYear,
           t.thStock,
           t.thService,
+          t.thActions,
         ];
         document.querySelectorAll("#entriesTable thead th").forEach((th, i) => {
           if (thLabels[i]) th.textContent = thLabels[i];
         });
+
+        document.getElementById("editTitle").textContent = t.editTitle;
+        document.getElementById("saveEditBtn").textContent = t.saveBtn;
 
         populateDealers();
         populateServices();
@@ -1746,7 +1867,11 @@
               esc(e.stock) +
               "</td><td><span class='svc-badge'>" +
               esc(e.service) +
-              "</span></td></tr>"
+              "</span></td><td><button class='edit-btn' onclick='openEditModal(\"" +
+              esc(e.id) +
+              "\")'>" +
+              LANG[lang].editBtn +
+              "</button></td></tr>"
             );
           });
 
@@ -1760,7 +1885,7 @@
                 esc(g.dealership) +
                 '</td><td></td><td></td><td></td><td></td><td></td><td><span class="svc-badge">' +
                 g.count +
-                "x Service Wash</span></td></tr>",
+                "x Service Wash</span></td><td></td></tr>",
             );
           });
 
@@ -1862,6 +1987,110 @@
         a.download = "rad-export.csv";
         a.click();
         URL.revokeObjectURL(a.href);
+      }
+
+      // ── Edit ──
+      function populateEditServices(dealer) {
+        const sel = document.getElementById("editService");
+        sel.innerHTML =
+          "<option value=''>" + LANG[lang].servicePH + "</option>";
+        const seen = new Set();
+        Object.keys(S)
+          .filter((k) => k !== "Service Wash")
+          .forEach((k) => {
+            seen.add(k);
+            const o = document.createElement("option");
+            o.value = k;
+            o.textContent = k;
+            sel.appendChild(o);
+          });
+        if (dealer && cfg.dealerPrices?.[dealer]) {
+          Object.keys(cfg.dealerPrices[dealer])
+            .filter((k) => !(k in S) && k !== "Service Wash")
+            .forEach((k) => {
+              const o = document.createElement("option");
+              o.value = k;
+              o.textContent = k;
+              sel.appendChild(o);
+            });
+        }
+      }
+
+      function openEditModal(id) {
+        const entry = entries.find((e) => e.id === id);
+        if (!entry) return;
+        const sel = document.getElementById("editDealer");
+        sel.innerHTML = "<option value=''>" + LANG[lang].select + "</option>";
+        [...PRESETS, ...dealers].forEach((d) => {
+          const o = document.createElement("option");
+          o.value = d;
+          o.textContent = d;
+          sel.appendChild(o);
+        });
+        document.getElementById("editDate").value = entry.date || "";
+        document.getElementById("editDealer").value = entry.dealership || "";
+        document.getElementById("editVin").value = entry.vin || "";
+        document.getElementById("editBrand").value = entry.brand || "";
+        document.getElementById("editModel").value = entry.model || "";
+        document.getElementById("editYear").value = entry.year || "";
+        document.getElementById("editStock").value = entry.stock || "";
+        document.getElementById("editRo").value = entry.ro || "";
+        document.getElementById("editDept").value = entry.department || "";
+        document.getElementById("editPrice").value =
+          entry.price != null ? entry.price : "";
+        document.getElementById("editInvoice").value = entry.invoice || "";
+        document.getElementById("editNotes").value = entry.notes || "";
+        populateEditServices(entry.dealership);
+        document.getElementById("editService").value = entry.service || "";
+        document.getElementById("editForm").dataset.id = entry.id;
+        document.getElementById("editModal").classList.add("open");
+      }
+
+      function closeEditModal() {
+        document.getElementById("editModal").classList.remove("open");
+      }
+
+      async function saveEdit(e) {
+        e.preventDefault();
+        const f = document.getElementById("editForm");
+        const id = f.dataset.id;
+        const data = {
+          _method: "PUT",
+          id: id,
+          date: document.getElementById("editDate").value,
+          dealership: document.getElementById("editDealer").value,
+          vin: document.getElementById("editVin").value.trim().toUpperCase(),
+          brand: document.getElementById("editBrand").value,
+          model: document.getElementById("editModel").value,
+          year: document.getElementById("editYear").value,
+          stock: document.getElementById("editStock").value,
+          ro: document.getElementById("editRo").value,
+          department: document.getElementById("editDept").value,
+          service: document.getElementById("editService").value,
+          price: parseFloat(document.getElementById("editPrice").value) || 0,
+          invoice: document.getElementById("editInvoice").value,
+          notes: document.getElementById("editNotes").value,
+        };
+        if (!data.dealership || !data.service)
+          return showToast(LANG[lang].req, "error");
+        try {
+          await call("POST", data);
+          showToast(LANG[lang].saved, "success");
+        } catch {
+          const idx = entries.findIndex((e) => e.id === id);
+          if (idx !== -1) {
+            entries[idx] = {
+              ...entries[idx],
+              ...data,
+              syncedAt: new Date().toISOString(),
+            };
+            save();
+          }
+          showToast(LANG[lang].offline, "info");
+        }
+        closeEditModal();
+        await loadEntries();
+        applyLang();
       }
 
       // ── Esc ──
